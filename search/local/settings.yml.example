@@ -47,7 +47,14 @@ engines:
   - name: startpage
     weight: 1.4
   - name: brave
-    weight: 1.3
+    weight: 0.5
+    disabled: true  # scraping → rate limited, use brave_api instead
+
+  - name: braveapi
+    engine: braveapi
+    api_key: CHANGE_ME
+    shortcut: brapi
+    weight: 1.5
   - name: mojeek
     weight: 1.1
   - name: duckduckgo

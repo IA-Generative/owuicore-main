@@ -1,6 +1,7 @@
 # Secrets
 .env
 *.secret
+search/local/settings.yml
 
 # OpenWebUI data (persisted via Docker volume)
 openwebui/data/

@@ -94,6 +94,7 @@ services:
       SEARXNG_BASE_URL: ${SEARXNG_LOCAL_BASE_URL:-http://localhost:8083}
       SEARXNG_SECRET: ${SEARXNG_SECRET:-CHANGE_ME}
       SEARXNG_VALKEY_URL: valkey://search-valkey:6379/0
+      BRAVE_API_KEY: ${BRAVE_API_KEY:-}
     volumes:
       - ./search/local/settings.yml:/etc/searxng/settings.yml
     depends_on:
