@@ -1,0 +1,322 @@
+{
+  "realm": "openwebui",
+  "enabled": true,
+  "sslRequired": "none",
+  "displayName": "Open WebUI",
+  "registrationAllowed": false,
+  "rememberMe": true,
+  "resetPasswordAllowed": true,
+  "roles": {
+    "realm": [
+      {
+        "name": "user",
+        "description": "Standard Open WebUI user"
+      },
+      {
+        "name": "admin",
+        "description": "Open WebUI administrator"
+      }
+    ]
+  },
+  "clients": [
+    {
+      "clientId": "openwebui",
+      "name": "Open WebUI",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "${KEYCLOAK_CLIENT_SECRET}",
+      "redirectUris": [
+        "http://localhost:3000/*",
+        "http://127.0.0.1:3000/*",
+        "https://${OPENWEBUI_HOST}/*"
+      ],
+      "webOrigins": [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://${OPENWEBUI_HOST}"
+      ],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "attributes": {
+        "post.logout.redirect.uris": "https://${OPENWEBUI_HOST}/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "consentRequired": false,
+          "config": {
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "claim.name": "groups"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "graphrag-viewer",
+      "name": "GraphRAG Viewer",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "redirectUris": [
+        "http://localhost:8081/*",
+        "http://127.0.0.1:8081/*",
+        "https://${BRIDGE_HOST}/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8081",
+        "http://127.0.0.1:8081",
+        "https://${BRIDGE_HOST}"
+      ],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:8081/* http://127.0.0.1:8081/* https://${BRIDGE_HOST}/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "consentRequired": false,
+          "config": {
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "claim.name": "groups"
+          }
+        }
+      ]
+    },
+    {
+      "clientId": "corpus-manager",
+      "name": "Corpus Manager",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "redirectUris": [
+        "http://localhost:8084/*",
+        "http://127.0.0.1:8084/*",
+        "https://${CORPUS_MANAGER_HOST}/*"
+      ],
+      "webOrigins": [
+        "http://localhost:8084",
+        "http://127.0.0.1:8084",
+        "https://${CORPUS_MANAGER_HOST}"
+      ],
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "http://localhost:8084/* http://127.0.0.1:8084/* https://${CORPUS_MANAGER_HOST}/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "consentRequired": false,
+          "config": {
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "claim.name": "groups"
+          }
+        }
+      ]
+    }
+  ],
+  "users": [
+    {
+      "username": "user1",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "User",
+      "lastName": "One",
+      "email": "user1@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user1password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "user2",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "User",
+      "lastName": "Two",
+      "email": "user2@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user2password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "user3",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "User",
+      "lastName": "Three",
+      "email": "user3@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user3password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "user4",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "User",
+      "lastName": "Four",
+      "email": "user4@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user4password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "user5",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "User",
+      "lastName": "Five",
+      "email": "user5@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user5password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "user6",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "User",
+      "lastName": "Six",
+      "email": "user6@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user6password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "user7",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "User",
+      "lastName": "Seven",
+      "email": "user7@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user7password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "user8",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "User",
+      "lastName": "Eight",
+      "email": "user8@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user8password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "user9",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "User",
+      "lastName": "Nine",
+      "email": "user9@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user9password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "user10",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "User",
+      "lastName": "Ten",
+      "email": "user10@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "user10password",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "admin"
+      ]
+    }
+  ]
+}

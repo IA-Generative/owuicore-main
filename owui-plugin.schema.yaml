@@ -1,0 +1,71 @@
+# JSON Schema (YAML format) for owui-plugin.yaml contract files.
+# Each feature repo must declare an owui-plugin.yaml at its root.
+
+type: object
+required: [name, version]
+properties:
+  name:
+    type: string
+    description: Unique plugin identifier (slug)
+  version:
+    type: string
+    description: Semantic version
+
+  services:
+    type: array
+    items:
+      type: object
+      required: [name, port]
+      properties:
+        name: { type: string }
+        port: { type: integer }
+
+  pipelines:
+    type: object
+    properties:
+      files:
+        type: array
+        items: { type: string }
+      requirements:
+        type: string
+
+  tools:
+    type: object
+    properties:
+      entries:
+        type: array
+        items:
+          type: object
+          required: [id, source_file]
+          properties:
+            id: { type: string }
+            source_file: { type: string }
+            service_name: { type: string }
+            service_port: { type: integer }
+            url_replacements:
+              type: object
+              additionalProperties: { type: string }
+
+  model_tools:
+    type: array
+    items:
+      type: object
+      required: [models, tool_ids]
+      properties:
+        models:
+          type: array
+          items: { type: string }
+        tool_ids:
+          type: array
+          items: { type: string }
+        system: { type: string }
+
+  env_vars:
+    type: array
+    items: { type: string }
+
+  k8s:
+    type: object
+    properties:
+      namespace: { type: string }
+      custom_image: { type: boolean }

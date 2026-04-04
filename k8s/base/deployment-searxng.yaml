@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: searxng
+  namespace: ${NAMESPACE}
+spec:
+  replicas: ${SEARXNG_REPLICAS}
+  selector:
+    matchLabels:
+      app: searxng
+  template:
+    metadata:
+      labels:
+        app: searxng
+    spec:
+      containers:
+        - name: searxng
+          image: ${SEARXNG_IMAGE}
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SEARXNG_SETTINGS_PATH
+              value: /etc/searxng/settings.yml
+            - name: SEARXNG_BASE_URL
+              value: http://searxng
+            - name: SEARXNG_VALKEY_URL
+              value: valkey://search-valkey:6379/0
+            - name: SEARXNG_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: grafrag-secrets
+                  key: SEARXNG_SECRET
+          ports:
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 40
+            periodSeconds: 20
+          volumeMounts:
+            - name: searxng-settings
+              mountPath: /etc/searxng/settings.yml
+              subPath: settings.yml
+      volumes:
+        - name: searxng-settings
+          configMap:
+            name: searxng-config

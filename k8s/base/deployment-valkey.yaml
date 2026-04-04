@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: search-valkey
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: search-valkey
+  template:
+    metadata:
+      labels:
+        app: search-valkey
+    spec:
+      containers:
+        - name: valkey
+          image: ${VALKEY_IMAGE}
+          imagePullPolicy: IfNotPresent
+          args:
+            - "--save"
+            - ""
+            - "--appendonly"
+            - "no"
+          ports:
+            - containerPort: 6379
+              name: redis

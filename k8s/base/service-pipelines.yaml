@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: pipelines
+  namespace: ${NAMESPACE}
+spec:
+  selector:
+    app: pipelines
+  ports:
+    - name: http
+      port: 9099
+      targetPort: 9099
+

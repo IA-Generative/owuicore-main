@@ -1,0 +1,120 @@
+# experimentation-owui — Socle OpenWebUI + Keycloak + Pipelines + SearXNG
+# Réseau owui-net partagé avec les feature repos
+
+services:
+  openwebui:
+    image: ${OPENWEBUI_IMAGE:-ghcr.io/open-webui/open-webui:v0.8.10}
+    env_file:
+      - .env
+    environment:
+      ENV: ${OPENWEBUI_ENV:-prod}
+      WEBUI_SECRET_KEY: ${WEBUI_SECRET_KEY:-CHANGE_ME}
+      ENABLE_SIGNUP: "false"
+      ENABLE_LOGIN_FORM: "false"
+      ENABLE_OAUTH_SIGNUP: ${ENABLE_OAUTH_SIGNUP:-true}
+      DEFAULT_USER_ROLE: ${DEFAULT_USER_ROLE:-user}
+      OAUTH_MERGE_ACCOUNTS_BY_EMAIL: ${OAUTH_MERGE_ACCOUNTS_BY_EMAIL:-true}
+      OAUTH_PROVIDER_NAME: Keycloak
+      OPENID_PROVIDER_URL: http://host.docker.internal:${KEYCLOAK_PORT:-8082}/realms/openwebui/.well-known/openid-configuration
+      OAUTH_CLIENT_ID: openwebui
+      OAUTH_CLIENT_SECRET: ${KEYCLOAK_CLIENT_SECRET_LOCAL:-CHANGE_ME}
+      OAUTH_SCOPES: openid profile email
+      OPENAI_API_BASE_URL: http://pipelines:9099/v1
+      OPENAI_API_KEY: ${PIPELINES_API_KEY:-CHANGE_ME}
+      ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH:-true}
+      WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE:-searxng}
+      WEB_SEARCH_RESULT_COUNT: ${WEB_SEARCH_RESULT_COUNT:-5}
+      WEB_SEARCH_CONCURRENT_REQUESTS: ${WEB_SEARCH_CONCURRENT_REQUESTS:-3}
+      WEB_SEARCH_TRUST_ENV: ${WEB_SEARCH_TRUST_ENV:-false}
+      SEARXNG_QUERY_URL: ${SEARXNG_QUERY_URL:-http://searxng:8080/search}
+      SEARXNG_LANGUAGE: ${SEARXNG_LANGUAGE:-all}
+    volumes:
+      - openwebui-data:/app/backend/data
+      - ./openwebui/custom/index.html:/app/build/index.html:ro
+      - ./openwebui/custom/custom.css:/app/backend/open_webui/static/custom.css:ro
+    depends_on:
+      pipelines:
+        condition: service_started
+    ports:
+      - "${OPENWEBUI_PORT:-3000}:8080"
+    networks:
+      - owui-net
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8080/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    command:
+      - start-dev
+      - --import-realm
+      - --hostname-url=http://localhost:${KEYCLOAK_PORT:-8082}
+      - --hostname-strict=false
+    env_file:
+      - .env
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN:-admin}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD:-CHANGE_ME}
+    volumes:
+      - ./keycloak/realm-openwebui.json:/opt/keycloak/data/import/realm-openwebui.json:ro
+    ports:
+      - "${KEYCLOAK_PORT:-8082}:8080"
+    networks:
+      - owui-net
+
+  pipelines:
+    image: ${PIPELINES_IMAGE:-ghcr.io/open-webui/pipelines:main}
+    env_file:
+      - .env
+    environment:
+      PIPELINES_API_KEY: ${PIPELINES_API_KEY:-CHANGE_ME}
+      SCW_LLM_BASE_URL: ${SCW_LLM_BASE_URL:-}
+      SCW_SECRET_KEY_LLM: ${SCW_SECRET_KEY_LLM:-}
+      SCW_LLM_MODEL: ${SCW_LLM_MODEL:-}
+    volumes:
+      - ./pipelines:/app/pipelines
+    ports:
+      - "${PIPELINES_PORT:-9099}:9099"
+    networks:
+      - owui-net
+
+  searxng:
+    profiles: ["search"]
+    image: ${SEARXNG_IMAGE:-docker.io/searxng/searxng:latest}
+    env_file:
+      - .env
+    environment:
+      SEARXNG_SETTINGS_PATH: /etc/searxng/settings.yml
+      SEARXNG_BASE_URL: ${SEARXNG_LOCAL_BASE_URL:-http://localhost:8083}
+      SEARXNG_SECRET: ${SEARXNG_SECRET:-CHANGE_ME}
+      SEARXNG_VALKEY_URL: valkey://search-valkey:6379/0
+    volumes:
+      - ./search/local/settings.yml:/etc/searxng/settings.yml
+    depends_on:
+      - search-valkey
+    ports:
+      - "${SEARXNG_LOCAL_PORT:-8083}:8080"
+    networks:
+      - owui-net
+
+  search-valkey:
+    profiles: ["search"]
+    image: ${VALKEY_IMAGE:-docker.io/valkey/valkey:8-alpine}
+    command:
+      - --save
+      - ""
+      - --appendonly
+      - "no"
+    networks:
+      - owui-net
+
+volumes:
+  openwebui-data:
+    name: owui-socle-openwebui-data
+
+networks:
+  owui-net:
+    name: owui-net
+    driver: bridge

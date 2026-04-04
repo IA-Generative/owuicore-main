@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:24.0
+          args:
+            - start-dev
+            - --import-realm
+            - --hostname=${KEYCLOAK_HOST}
+            - --proxy-headers=xforwarded
+          env:
+            - name: KEYCLOAK_ADMIN
+              value: "${KEYCLOAK_ADMIN}"
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: grafrag-secrets
+                  key: KEYCLOAK_ADMIN_PASSWORD
+          ports:
+            - containerPort: 8080
+              name: http
+          readinessProbe:
+            httpGet:
+              path: /realms/master
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          volumeMounts:
+            - name: keycloak-realm
+              mountPath: /opt/keycloak/data/import/realm-openwebui.json
+              subPath: realm-openwebui.json
+      volumes:
+        - name: keycloak-realm
+          configMap:
+            name: keycloak-realm

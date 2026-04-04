@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pipelines
+  namespace: ${NAMESPACE}
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pipelines
+  template:
+    metadata:
+      labels:
+        app: pipelines
+    spec:
+      enableServiceLinks: false
+      initContainers:
+        - name: copy-pipelines
+          image: docker.io/library/busybox:1.36
+          command:
+            - /bin/sh
+            - -c
+            - cp -R /config/. /workdir/
+          volumeMounts:
+            - name: pipelines-config
+              mountPath: /config
+            - name: pipelines-workdir
+              mountPath: /workdir
+      containers:
+        - name: pipelines
+          image: ${PIPELINES_IMAGE}
+          imagePullPolicy: IfNotPresent
+          envFrom:
+            - configMapRef:
+                name: grafrag-config
+            - secretRef:
+                name: grafrag-secrets
+          ports:
+            - containerPort: 9099
+              name: http
+          volumeMounts:
+            - name: pipelines-workdir
+              mountPath: /app/pipelines
+      volumes:
+        - name: pipelines-config
+          configMap:
+            name: pipelines-config
+        - name: pipelines-workdir
+          emptyDir: {}

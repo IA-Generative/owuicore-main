@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - configmap.yaml
+  - configmap-searxng.yaml
+  - deployment-openwebui.yaml
+  - service-openwebui.yaml
+  - ingress-openwebui.yaml
+  - deployment-keycloak.yaml
+  - service-keycloak.yaml
+  - ingress-keycloak.yaml
+  - deployment-pipelines.yaml
+  - service-pipelines.yaml
+  - deployment-searxng.yaml
+  - service-searxng.yaml
+  - ingress-searxng.yaml
+  - deployment-valkey.yaml
+  - service-valkey.yaml

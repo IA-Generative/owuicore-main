@@ -1,0 +1,17 @@
+# Secrets
+.env
+*.secret
+
+# OpenWebUI data (persisted via Docker volume)
+openwebui/data/
+
+# K8s rendered manifests
+k8s/rendered/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# OS
+.DS_Store
