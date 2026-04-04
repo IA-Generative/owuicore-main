@@ -1,0 +1,60 @@
+name: Deploy — Socle + Plugins
+
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_plugins:
+        description: 'Also deploy plugins'
+        type: boolean
+        default: true
+
+jobs:
+  deploy-socle:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Configure kubeconfig
+        run: echo "${{ secrets.KUBECONFIG }}" | base64 -d > /tmp/kubeconfig
+        env:
+          KUBECONFIG: /tmp/kubeconfig
+
+      - name: Prepare .env
+        run: |
+          cat > .env <<'ENVEOF'
+          NAMESPACE=${{ vars.NAMESPACE }}
+          REGISTRY=${{ vars.REGISTRY }}
+          IMAGE_TAG=${{ github.sha }}
+          OPENWEBUI_IMAGE=${{ vars.OPENWEBUI_IMAGE }}
+          PIPELINES_IMAGE=${{ vars.PIPELINES_IMAGE }}
+          SEARXNG_IMAGE=${{ vars.SEARXNG_IMAGE }}
+          VALKEY_IMAGE=${{ vars.VALKEY_IMAGE }}
+          OPENWEBUI_HOST=${{ vars.OPENWEBUI_HOST }}
+          KEYCLOAK_HOST=${{ vars.KEYCLOAK_HOST }}
+          SEARXNG_HOST=${{ vars.SEARXNG_HOST }}
+          LETSENCRYPT_EMAIL=${{ vars.LETSENCRYPT_EMAIL }}
+          KEYCLOAK_ADMIN=${{ secrets.KEYCLOAK_ADMIN }}
+          SCW_LLM_BASE_URL=${{ secrets.SCW_LLM_BASE_URL }}
+          SCW_LLM_MODEL=${{ vars.SCW_LLM_MODEL }}
+          SCW_SECRET_KEY_LLM=${{ secrets.SCW_SECRET_KEY_LLM }}
+          PIPELINES_API_KEY=${{ secrets.PIPELINES_API_KEY }}
+          WEBUI_SECRET_KEY=${{ secrets.WEBUI_SECRET_KEY }}
+          KEYCLOAK_ADMIN_PASSWORD=${{ secrets.KEYCLOAK_ADMIN_PASSWORD }}
+          KEYCLOAK_CLIENT_SECRET=${{ secrets.KEYCLOAK_CLIENT_SECRET }}
+          SEARXNG_SECRET=${{ secrets.SEARXNG_SECRET }}
+          ENVEOF
+
+      - name: Deploy socle
+        run: bash deploy/deploy-k8s.sh
+        env:
+          KUBECONFIG: /tmp/kubeconfig
+
+      - name: Deploy plugins
+        if: inputs.deploy_plugins
+        run: bash deploy/deploy-plugins.sh
+        env:
+          KUBECONFIG: /tmp/kubeconfig

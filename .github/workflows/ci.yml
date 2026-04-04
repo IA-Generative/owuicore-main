@@ -1,0 +1,84 @@
+name: CI — Socle
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate YAML configs
+        run: |
+          python3 -c "import yaml" 2>/dev/null || pip install pyyaml
+          python3 -c "
+          import yaml, sys, pathlib
+          errors = 0
+          for f in pathlib.Path('.').rglob('*.yaml'):
+              if '.git' in str(f) or 'rendered' in str(f):
+                  continue
+              try:
+                  yaml.safe_load(f.read_text())
+              except Exception as e:
+                  print(f'FAIL: {f}: {e}')
+                  errors += 1
+          for f in pathlib.Path('.').rglob('*.yml'):
+              if '.git' in str(f):
+                  continue
+              try:
+                  yaml.safe_load(f.read_text())
+              except Exception as e:
+                  print(f'FAIL: {f}: {e}')
+                  errors += 1
+          print(f'{errors} errors' if errors else 'All YAML files valid')
+          sys.exit(1 if errors else 0)
+          "
+
+      - name: Check .env.example has no real secrets
+        run: |
+          if grep -qE '(sk-|ghp_|scw_)' .env.example; then
+            echo "FAIL: .env.example may contain real secrets"
+            exit 1
+          fi
+          echo "OK: no secrets detected in .env.example"
+
+  docker-smoke:
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Prepare .env
+        run: cp .env.example .env
+
+      - name: Start socle
+        run: docker compose up -d
+
+      - name: Wait for OpenWebUI healthy
+        run: |
+          for i in $(seq 1 60); do
+            STATUS=$(docker inspect --format='{{.State.Health.Status}}' experimentation-owui-openwebui-1 2>/dev/null || echo "not running")
+            echo "[$i] $STATUS"
+            [ "$STATUS" = "healthy" ] && exit 0
+            sleep 5
+          done
+          echo "Timeout waiting for OpenWebUI"
+          docker compose logs openwebui | tail -50
+          exit 1
+
+      - name: Verify services
+        run: |
+          curl -fsS http://localhost:3000/health
+          curl -fsS http://localhost:9099/v1/models || true
+          echo "Socle services OK"
+
+      - name: Verify owui-net network
+        run: docker network inspect owui-net
+
+      - name: Cleanup
+        if: always()
+        run: docker compose down
