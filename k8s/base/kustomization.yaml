@@ -17,3 +17,4 @@ resources:
   - ingress-searxng.yaml
   - deployment-valkey.yaml
   - service-valkey.yaml
+  - cronjob-register-plugins.yaml

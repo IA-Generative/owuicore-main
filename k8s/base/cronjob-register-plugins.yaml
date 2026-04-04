@@ -1,0 +1,60 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: register-plugins
+  namespace: ${NAMESPACE}
+spec:
+  schedule: "*/2 * * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 120
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: register
+              image: python:3.12-slim
+              command:
+                - python3
+                - /scripts/register_plugins.py
+              env:
+                - name: OWUI_API_URL
+                  value: "http://openwebui.${NAMESPACE}.svc.cluster.local:80"
+                - name: OWUI_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: owui-socle-secrets
+                      key: OWUI_API_KEY
+                      optional: true
+                - name: PLUGIN_PATHS
+                  valueFrom:
+                    configMapKeyRef:
+                      name: plugin-registry
+                      key: PLUGIN_PATHS
+                      optional: true
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                  readOnly: true
+                - name: plugins
+                  mountPath: /plugins
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  cpu: 200m
+                  memory: 128Mi
+          volumes:
+            - name: scripts
+              configMap:
+                name: register-plugins-scripts
+            - name: plugins
+              configMap:
+                name: plugin-registry
+                optional: true

@@ -1,7 +1,8 @@
-.PHONY: up-socle up-socle-full down logs ps register smoke-test deploy-socle deploy help
+.PHONY: up-socle up-socle-full up-dev down logs ps register discover smoke-test deploy-socle deploy-plugins deploy help
 
 COMPOSE = docker compose
 COMPOSE_SEARCH = docker compose --profile search
+COMPOSE_DEV = docker compose --profile dev
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -14,8 +15,11 @@ up-socle: ## Start socle (OpenWebUI + Keycloak + Pipelines)
 up-socle-full: ## Start socle with search (SearXNG + Valkey)
 	$(COMPOSE_SEARCH) up -d
 
+up-dev: ## Start socle + register-watcher (hot-reload dev mode)
+	$(COMPOSE_DEV) up -d
+
 down: ## Stop all services
-	$(COMPOSE_SEARCH) down
+	docker compose --profile search --profile dev down
 
 logs: ## Tail logs for all services
 	$(COMPOSE_SEARCH) logs -f

@@ -5,6 +5,8 @@
 # Discovery order:
 #   1. PLUGIN_PATHS env var (comma-separated)
 #   2. Sibling directories of this repo that contain owui-plugin.yaml
+#
+# Compatible with macOS and Linux.
 
 set -euo pipefail
 
@@ -25,10 +27,12 @@ fi
 # 2. Scan sibling directories
 for dir in "$PARENT_DIR"/*/; do
     # Skip the socle itself
-    [[ "$(realpath "$dir")" == "$(realpath "$SOCLE_DIR")" ]] && continue
+    dir_real="$(cd "$dir" && pwd)"
+    socle_real="$(cd "$SOCLE_DIR" && pwd)"
+    [[ "$dir_real" == "$socle_real" ]] && continue
 
     if [[ -f "$dir/owui-plugin.yaml" ]]; then
-        # Output relative path from socle
-        realpath --relative-to="$SOCLE_DIR" "$dir"
+        # Output relative path from socle (portable, no GNU realpath)
+        python3 -c "import os,sys; print(os.path.relpath(sys.argv[1], sys.argv[2]))" "$dir_real" "$socle_real"
     fi
 done
