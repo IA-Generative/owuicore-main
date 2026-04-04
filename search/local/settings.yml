@@ -33,14 +33,15 @@ valkey:
   url: valkey://search-valkey:6379/0
 
 outgoing:
-  request_timeout: 6.0
-  max_request_timeout: 12.0
+  request_timeout: 8.0
+  max_request_timeout: 15.0
   retries: 2
   pool_connections: 50
   pool_maxsize: 10
   enable_http2: true
 
 engines:
+  # --- Moteurs généraux ---
   - name: duckduckgo
     weight: 1.4
   - name: brave
@@ -55,3 +56,42 @@ engines:
     weight: 0.7
   - name: google
     weight: 0.6
+
+  # --- Sites gouvernementaux français ---
+  # Recherche service-public.fr via leur moteur interne
+  - name: service-public.fr
+    engine: xpath
+    shortcut: spfr
+    categories: [general]
+    url: https://www.service-public.fr/recherche?query={query}
+    results_xpath: //div[contains(@class,"fr-card")]
+    url_xpath: .//a/@href
+    title_xpath: .//a
+    content_xpath: .//p[contains(@class,"desc") or contains(@class,"detail")]
+    first_page_num: 1
+    weight: 1.6
+    timeout: 10.0
+    disabled: false
+
+  # Recherche data.gouv.fr via leur API JSON
+  - name: data.gouv.fr
+    engine: json_engine
+    shortcut: datagouv
+    categories: [general]
+    paging: true
+    url: https://www.data.gouv.fr/api/1/datasets/?q={query}&page={pageno}&page_size=5
+    results_query: data
+    url_query: page
+    title_query: title
+    content_query: description
+    weight: 1.3
+    timeout: 8.0
+    disabled: false
+
+  # Recherche gouv.fr global via Qwant (fiable, pas de rate limit agressif)
+  - name: qwant gouv.fr
+    engine: qwant
+    shortcut: qgouvfr
+    categories: [general]
+    weight: 1.5
+    disabled: false
