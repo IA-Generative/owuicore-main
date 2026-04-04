@@ -1,8 +1,9 @@
-.PHONY: up-socle up-socle-full up-dev down logs ps register discover smoke-test deploy-socle deploy-plugins deploy help
+.PHONY: up-socle up-socle-full up-dev up-images down logs ps register discover smoke-test deploy-socle deploy-plugins deploy help
 
 COMPOSE = docker compose
 COMPOSE_SEARCH = docker compose --profile search
 COMPOSE_DEV = docker compose --profile dev
+COMPOSE_IMAGES = docker compose --profile image-gen
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -18,8 +19,11 @@ up-socle-full: ## Start socle with search (SearXNG + Valkey)
 up-dev: ## Start socle + register-watcher (hot-reload dev mode)
 	$(COMPOSE_DEV) up -d
 
+up-images: ## Start socle + HuggingFace image generation
+	$(COMPOSE_IMAGES) up -d
+
 down: ## Stop all services
-	docker compose --profile search --profile dev down
+	docker compose --profile search --profile dev --profile image-gen down
 
 logs: ## Tail logs for all services
 	$(COMPOSE_SEARCH) logs -f

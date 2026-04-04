@@ -28,6 +28,11 @@ services:
       WEB_SEARCH_TRUST_ENV: ${WEB_SEARCH_TRUST_ENV:-false}
       SEARXNG_QUERY_URL: ${SEARXNG_QUERY_URL:-http://searxng:8080/search}
       SEARXNG_LANGUAGE: ${SEARXNG_LANGUAGE:-all}
+      ENABLE_IMAGE_GENERATION: ${ENABLE_IMAGE_GENERATION:-true}
+      IMAGE_GENERATION_ENGINE: openai
+      IMAGES_OPENAI_API_BASE_URL: http://image-gen:9100/v1
+      IMAGES_OPENAI_API_KEY: ${HF_TOKEN:-not-used}
+      IMAGE_GENERATION_MODEL: ${HF_IMAGE_MODEL:-black-forest-labs/FLUX.1-schnell}
     volumes:
       - openwebui-data:/app/backend/data
       - ./openwebui/custom/index.html:/app/build/index.html:ro
@@ -109,6 +114,25 @@ services:
       - "no"
     networks:
       - owui-net
+
+  image-gen:
+    profiles: ["image-gen"]
+    build:
+      context: ./image-gen
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
+      HF_IMAGE_MODEL: ${HF_IMAGE_MODEL:-black-forest-labs/FLUX.1-schnell}
+      HF_TIMEOUT: ${HF_TIMEOUT:-120}
+      PORT: "9100"
+    ports:
+      - "${IMAGE_GEN_PORT:-9100}:9100"
+    networks:
+      - owui-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://localhost:9100/healthz').raise_for_status()"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
 
   register-watcher:
     profiles: ["dev"]
