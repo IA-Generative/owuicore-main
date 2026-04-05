@@ -4,7 +4,7 @@ metadata:
   name: searxng
   namespace: ${NAMESPACE}
 spec:
-  replicas: ${SEARXNG_REPLICAS}
+  replicas: 1
   selector:
     matchLabels:
       app: searxng
@@ -27,7 +27,7 @@ spec:
             - name: SEARXNG_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: grafrag-secrets
+                  name: owui-socle-secrets
                   key: SEARXNG_SECRET
           ports:
             - containerPort: 8080

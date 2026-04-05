@@ -85,19 +85,19 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 
 ### T4.1 — Apercu de fichier CSV
 - **Modele** : gpt-oss-120b
-- **Prompt** : `Donne-moi un apercu de ce fichier : https://www.data.gouv.fr/fr/datasets/r/d4669162-3884-4ed5-9c36-e624d9b7fd66`
-- **Attendu** : Tableau avec colonnes, types et premieres lignes (tool data_preview appele)
+- **Prompt** : `Donne-moi un apercu de ce fichier : https://www.data.gouv.fr/fr/datasets/r/008a2dda-2c60-4b63-b910-998f6f818089`
+- **Attendu** : Tableau avec colonnes (Code_commune_INSEE, Nom_de_la_commune, Code_postal, etc.), types et premieres lignes (tool data_preview appele)
 - [ ] OK
 
 ### T4.2 — Schema detaille
 - **Modele** : gpt-oss-120b
-- **Prompt** : `Quel est le schema detaille de ce fichier ? https://www.data.gouv.fr/fr/datasets/r/d4669162-3884-4ed5-9c36-e624d9b7fd66`
+- **Prompt** : `Quel est le schema detaille de ce fichier ? https://www.data.gouv.fr/fr/datasets/r/008a2dda-2c60-4b63-b910-998f6f818089`
 - **Attendu** : Colonnes, types, statistiques, valeurs uniques
 - [ ] OK
 
 ### T4.3 — Requete en langage naturel
 - **Modele** : gpt-oss-120b
-- **Prompt** : `Dans ce fichier https://www.data.gouv.fr/fr/datasets/r/d4669162-3884-4ed5-9c36-e624d9b7fd66 quelles sont les 5 premieres lignes triees par ordre alphabetique ?`
+- **Prompt** : `Dans ce fichier https://www.data.gouv.fr/fr/datasets/r/008a2dda-2c60-4b63-b910-998f6f818089 quelles sont les 5 premieres lignes triees par ordre alphabetique ?`
 - **Attendu** : Resultat tabulaire avec les 5 lignes
 - [ ] OK
 

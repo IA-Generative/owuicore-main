@@ -1,4 +1,4 @@
-# experimentation-owui — Socle OpenWebUI + Keycloak + Pipelines + SearXNG
+# owuicore — Socle OpenWebUI + Keycloak + Pipelines + SearXNG + Tika
 # Réseau owui-net partagé avec les feature repos
 
 services:
@@ -23,24 +23,37 @@ services:
       OPENAI_API_KEY: ${PIPELINES_API_KEY:-CHANGE_ME}
       OPENAI_API_BASE_URLS: ${OPENAI_API_BASE_URLS:-http://pipelines:9099/v1}
       OPENAI_API_KEYS: ${OPENAI_API_KEYS:-${PIPELINES_API_KEY:-CHANGE_ME}}
-      ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH:-true}
+      # Web search disabled as OWUI feature (avoids auto-injection + max_tokens overflow)
+      # SearXNG remains available for tools/MCP that call it directly
+      ENABLE_WEB_SEARCH: "false"
       WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE:-searxng}
-      WEB_SEARCH_RESULT_COUNT: ${WEB_SEARCH_RESULT_COUNT:-5}
-      WEB_SEARCH_CONCURRENT_REQUESTS: ${WEB_SEARCH_CONCURRENT_REQUESTS:-3}
-      WEB_SEARCH_TRUST_ENV: ${WEB_SEARCH_TRUST_ENV:-false}
       SEARXNG_QUERY_URL: ${SEARXNG_QUERY_URL:-http://searxng:8080/search}
-      SEARXNG_LANGUAGE: ${SEARXNG_LANGUAGE:-all}
-      ENABLE_IMAGE_GENERATION: ${ENABLE_IMAGE_GENERATION:-true}
-      IMAGE_GENERATION_ENGINE: openai
-      IMAGES_OPENAI_API_BASE_URL: http://image-gen:9100/v1
-      IMAGES_OPENAI_API_KEY: ${HF_TOKEN:-not-used}
-      IMAGE_GENERATION_MODEL: ${HF_IMAGE_MODEL:-black-forest-labs/FLUX.1-schnell}
+      # Image generation disabled as OWUI auto-feature (causes max_tokens overflow)
+      # Available on demand via the image-gen service directly
+      ENABLE_IMAGE_GENERATION: "false"
       ENABLE_API_KEYS: "true"
+      DEFAULT_MODELS: ${DEFAULT_MODEL:-mistral-small-3.2-24b-instruct-2506}
+      # Task model for function calling / title generation
+      TASK_MODEL_EXTERNAL: ${TASK_MODEL:-mistral-small-3.2-24b-instruct-2506}
+      DIRECT_TOOL_CALLING: "true"
+      # Disable auto web search — let the model decide when to search via tools
+      ENABLE_SEARCH_QUERY_GENERATION: "false"
+      # --- RAG: embeddings via Scaleway (no local model download) ---
+      RAG_EMBEDDING_ENGINE: openai
+      RAG_EMBEDDING_MODEL: ${OPENAI_EMBEDDING_MODEL:-bge-multilingual-gemma2}
+      RAG_OPENAI_API_BASE_URL: ${SCW_LLM_BASE_URL:-}
+      RAG_OPENAI_API_KEY: ${SCW_SECRET_KEY_LLM:-}
+      RAG_EMBEDDING_BATCH_SIZE: "16"
+      # --- RAG: document extraction via Tika ---
+      CONTENT_EXTRACTION_ENGINE: tika
+      TIKA_SERVER_URL: http://tika:9998
     volumes:
       - openwebui-data:/app/backend/data
     depends_on:
       pipelines:
         condition: service_started
+      tika:
+        condition: service_healthy
     ports:
       - "${OPENWEBUI_PORT:-3000}:8080"
     networks:
@@ -97,6 +110,9 @@ services:
       SEARXNG_SECRET: ${SEARXNG_SECRET:-CHANGE_ME}
       SEARXNG_VALKEY_URL: valkey://search-valkey:6379/0
       BRAVE_API_KEY: ${BRAVE_API_KEY:-}
+      HTTP_PROXY: ${PROXY_URL:-}
+      HTTPS_PROXY: ${PROXY_URL:-}
+      NO_PROXY: localhost,127.0.0.1,openwebui,keycloak,pipelines,search-valkey,tika
     volumes:
       - ./search/local/settings.yml:/etc/searxng/settings.yml
     depends_on:
@@ -136,15 +152,39 @@ services:
       timeout: 5s
       retries: 5
 
+  tika:
+    image: apache/tika:latest
+    ports:
+      - "9998:9998"
+    networks:
+      - owui-net
+    healthcheck:
+      test: ["CMD-SHELL", "bash -c 'echo > /dev/tcp/localhost/9998'"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
   ensure-tools:
     image: python:3.12-slim
     working_dir: /socle
     command: ["bash", "-c", "pip install -q pyyaml && python3 scripts/ensure_tools.py --mode docker --wait --db-path /owui-data/webui.db"]
     environment:
       PLUGIN_PATHS: ${PLUGIN_PATHS:-}
+      SEARXNG_QUERY_URL: ${SEARXNG_QUERY_URL:-http://searxng:8080/search}
+      WEB_SEARCH_RESULT_COUNT: ${WEB_SEARCH_RESULT_COUNT:-5}
+      WEB_SEARCH_CONCURRENT_REQUESTS: ${WEB_SEARCH_CONCURRENT_REQUESTS:-3}
+      HF_TOKEN: ${HF_TOKEN:-}
+      HF_IMAGE_MODEL: ${HF_IMAGE_MODEL:-black-forest-labs/FLUX.1-schnell}
+      IMAGES_OPENAI_API_BASE_URL: http://image-gen:9100/v1
+      PIPELINES_URL: http://pipelines:9099
+      PIPELINES_API_KEY: ${PIPELINES_API_KEY:-}
+      SCW_LLM_BASE_URL: ${SCW_LLM_BASE_URL:-}
+      SCW_SECRET_KEY_LLM: ${SCW_SECRET_KEY_LLM:-}
+      DEFAULT_MODEL: ${DEFAULT_MODEL:-gpt-oss-120b}
     volumes:
       - .:/socle:ro
       - openwebui-data:/owui-data
+      - ./pipelines:/pipelines-out
       - ..:/parent:ro
     depends_on:
       openwebui:

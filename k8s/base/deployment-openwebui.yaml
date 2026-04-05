@@ -20,9 +20,9 @@ spec:
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: grafrag-config
+                name: owui-socle-config
             - secretRef:
-                name: grafrag-secrets
+                name: owui-socle-secrets
           env:
             - name: ENABLE_LOGIN_FORM
               value: "false"
@@ -41,7 +41,7 @@ spec:
             - name: OAUTH_CLIENT_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: grafrag-secrets
+                  name: owui-socle-secrets
                   key: KEYCLOAK_CLIENT_SECRET
             - name: OAUTH_SCOPES
               value: "openid profile email"
@@ -50,7 +50,7 @@ spec:
             - name: OPENAI_API_KEY
               valueFrom:
                 secretKeyRef:
-                  name: grafrag-secrets
+                  name: owui-socle-secrets
                   key: PIPELINES_API_KEY
             - name: ENABLE_WEB_SEARCH
               value: "true"
@@ -80,4 +80,5 @@ spec:
               mountPath: /app/backend/data
       volumes:
         - name: openwebui-data
-          emptyDir: {}
+          persistentVolumeClaim:
+            claimName: openwebui-data

@@ -34,9 +34,9 @@ spec:
           imagePullPolicy: IfNotPresent
           envFrom:
             - configMapRef:
-                name: grafrag-config
+                name: owui-socle-config
             - secretRef:
-                name: grafrag-secrets
+                name: owui-socle-secrets
           ports:
             - containerPort: 9099
               name: http
