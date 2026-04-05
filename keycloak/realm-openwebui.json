@@ -85,7 +85,7 @@
       "enabled": true,
       "protocol": "openid-connect",
       "publicClient": false,
-      "secret": "nrIGFQrtOSvrpCavfLz5meGWD0XBE8I5",
+      "secret": "CHANGE_ME",
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": false,
