@@ -1,0 +1,77 @@
+{
+  "domain": "mychat.fake-domain",
+  "socle_repo": "experimentation-owui",
+  "socle_namespace": "owui-socle",
+  "k8s_strategy": "hybrid",
+  "scaleway": {
+    "registry": "rg.fr-par.scw.cloud/funcscwnspricelessmontalcinhiacgnzi",
+    "region": "fr-par",
+    "llm_url": "https://api.scaleway.ai/<PROJECT_ID>/v1",
+    "llm_model": "mistral-small-3.2-24b-instruct-2506",
+    "embed_model": "bge-multilingual-gemma2"
+  },
+  "features": [
+    {
+      "name": "grafrag-experimentation",
+      "desc": "GraphRAG bridge, corpus manager, indexation multi-corpus",
+      "services": [
+        "bridge:8081",
+        "corpus-manager:8084",
+        "corpus-worker",
+        "drive:8085"
+      ],
+      "pipelines": [
+        "pipelines/graphrag_pipeline.py"
+      ],
+      "tools": [],
+      "namespace": "grafrag",
+      "custom_image": true
+    },
+    {
+      "name": "anef-knowledge-assistant",
+      "desc": "Moteur d'éligibilité réglementaire ANEF / CESEDA",
+      "services": [
+        "anef-api:8000"
+      ],
+      "pipelines": [
+        "pipelines/anef_regulatory_pipeline.py"
+      ],
+      "tools": [
+        "anef_eligibility_tool"
+      ],
+      "namespace": "anef",
+      "custom_image": true
+    },
+    {
+      "name": "tchap-reader",
+      "desc": "Lecture et analyse de salons Tchap (Matrix)",
+      "services": [
+        "tchap-reader:8087"
+      ],
+      "pipelines": [],
+      "tools": [
+        "tchap_reader",
+        "tchap_admin"
+      ],
+      "namespace": "socle",
+      "custom_image": true
+    },
+    {
+      "name": "browser-skill-owui",
+      "desc": "Extraction web pour RAG et Open WebUI",
+      "services": [
+        "browser-skill:8086",
+        "browser-skill-full:8086"
+      ],
+      "pipelines": [],
+      "tools": [
+        "browser_use",
+        "vision_image_filter"
+      ],
+      "namespace": "browser-use",
+      "custom_image": true
+    }
+  ],
+  "extras": [],
+  "notes": []
+}
