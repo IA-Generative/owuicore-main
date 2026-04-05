@@ -1,0 +1,75 @@
+#cloud-config
+# HAProxy load balancer — round-robin across Squid backends
+# Runs on VM1 alongside Squid
+# Injected vars: ${SQUID_BACKENDS} (comma-separated host:port list)
+
+package_update: true
+packages:
+  - haproxy
+
+write_files:
+  - path: /etc/haproxy/haproxy.cfg
+    content: |
+      global
+        log /dev/log local0
+        maxconn 2000
+        daemon
+
+      defaults
+        log     global
+        mode    tcp
+        option  tcplog
+        timeout connect 10s
+        timeout client  60s
+        timeout server  60s
+        retries 3
+
+      # --- Stats (optional, accessible on :8404) ---
+      frontend stats
+        bind *:8404
+        mode http
+        stats enable
+        stats uri /stats
+        stats refresh 10s
+
+      # --- Proxy entry point ---
+      frontend proxy_in
+        bind *:3128
+        default_backend squid_pool
+
+      backend squid_pool
+        balance roundrobin
+        # Backends are configured by /usr/local/bin/configure-haproxy.sh
+        # PLACEHOLDER — replaced at deploy time
+
+  - path: /usr/local/bin/configure-haproxy.sh
+    permissions: "0755"
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+
+      BACKENDS_FILE="/etc/haproxy/backends.cfg"
+      HAPROXY_CFG="/etc/haproxy/haproxy.cfg"
+
+      # Read backend IPs from environment or argument
+      BACKENDS="${1:-${SQUID_BACKENDS:-}}"
+      if [ -z "$BACKENDS" ]; then
+        echo "Usage: $0 ip1:port,ip2:port,ip3:port"
+        exit 1
+      fi
+
+      # Generate backend server lines
+      echo "    # Auto-generated — $(date)" > "$BACKENDS_FILE"
+      IFS=',' read -ra HOSTS <<< "$BACKENDS"
+      for i in "${!HOSTS[@]}"; do
+        echo "    server squid${i} ${HOSTS[$i]} check inter 30s fall 3 rise 2" >> "$BACKENDS_FILE"
+      done
+
+      # Replace placeholder in haproxy.cfg
+      sed -i '/# PLACEHOLDER/r '"$BACKENDS_FILE" "$HAPROXY_CFG"
+      sed -i '/# PLACEHOLDER/d' "$HAPROXY_CFG"
+
+      echo "HAProxy configured with ${#HOSTS[@]} backends:"
+      cat "$BACKENDS_FILE"
+
+      systemctl restart haproxy

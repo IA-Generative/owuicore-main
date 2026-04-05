@@ -1,0 +1,128 @@
+#cloud-config
+# Squid proxy with multi-IP round-robin rotation
+# Injected vars: ${FLEXIBLE_IPS} (space-separated list of IPs assigned to this VM)
+
+package_update: true
+packages:
+  - squid
+  - curl
+  - jq
+
+write_files:
+  # Squid configuration — outbound IP rotation
+  - path: /etc/squid/squid.conf
+    content: |
+      # --- Listening ---
+      http_port 3128
+
+      # --- ACL ---
+      acl localnet src 10.0.0.0/8
+      acl localnet src 172.16.0.0/12
+      acl localnet src 192.168.0.0/16
+      acl SSL_ports port 443
+      acl Safe_ports port 80 443 1025-65535
+      acl CONNECT method CONNECT
+
+      http_access deny !Safe_ports
+      http_access deny CONNECT !SSL_ports
+      http_access allow localnet
+      http_access allow localhost
+      http_access deny all
+
+      # --- Outbound IP rotation ---
+      # IPs are configured by /usr/local/bin/configure-squid-ips.sh at boot
+      include /etc/squid/outbound-ips.conf
+
+      # --- Performance ---
+      cache deny all
+      forwarded_for delete
+      via off
+      request_header_access X-Forwarded-For deny all
+
+      # --- Logging ---
+      access_log daemon:/var/log/squid/access.log squid
+      cache_log /var/log/squid/cache.log
+      logfile_rotate 3
+
+  # Script to configure outbound IPs from metadata
+  - path: /usr/local/bin/configure-squid-ips.sh
+    permissions: "0755"
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+
+      # Discover all local IPs (excluding loopback and link-local)
+      mapfile -t IPS < <(ip -4 addr show scope global | grep -oP 'inet \K[\d.]+')
+
+      echo "# Auto-generated — $(date)" > /etc/squid/outbound-ips.conf
+      echo "# Round-robin across ${#IPS[@]} IPs" >> /etc/squid/outbound-ips.conf
+
+      if [ ${#IPS[@]} -le 1 ]; then
+        echo "# Single IP — no rotation needed" >> /etc/squid/outbound-ips.conf
+        exit 0
+      fi
+
+      # Squid rotates across tcp_outgoing_address entries in round-robin
+      for i in "${!IPS[@]}"; do
+        ACL_NAME="outip${i}"
+        IP="${IPS[$i]}"
+        # Use random ACL to distribute — Squid picks first matching ACL,
+        # so we use a numbered random scheme
+        echo "acl ${ACL_NAME} random 1/${#IPS[@]}" >> /etc/squid/outbound-ips.conf
+        echo "tcp_outgoing_address ${IP} ${ACL_NAME}" >> /etc/squid/outbound-ips.conf
+      done
+
+      echo "Configured ${#IPS[@]} outbound IPs for Squid rotation"
+      cat /etc/squid/outbound-ips.conf
+
+  # Healthcheck script
+  - path: /usr/local/bin/proxy-healthcheck.sh
+    permissions: "0755"
+    content: |
+      #!/bin/bash
+      # Verify Squid is running and can reach the internet
+      curl -s --proxy http://127.0.0.1:3128 --max-time 5 -o /dev/null -w "%{http_code}" https://httpbin.org/ip
+
+  # Configure flexible IPs on network interfaces
+  - path: /usr/local/bin/configure-flex-ips.sh
+    permissions: "0755"
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+      # Flexible IPs are routed to the instance by Scaleway
+      # They need to be added as secondary addresses on the main interface
+      IFACE=$(ip route show default | awk '{print $5}' | head -1)
+      PRIMARY_IP=$(ip -4 addr show "$IFACE" scope global | grep -oP 'inet \K[\d.]+' | head -1)
+
+      echo "Primary interface: $IFACE ($PRIMARY_IP)"
+
+      # Fetch instance metadata to discover attached IPs
+      METADATA_URL="http://169.254.42.42/conf"
+      if curl -s --max-time 2 "$METADATA_URL" > /dev/null 2>&1; then
+        echo "Fetching IPs from Scaleway metadata..."
+        # Public IPs from metadata
+        mapfile -t FLEX_IPS < <(curl -s "$METADATA_URL" | grep -oP 'PUBLIC_IP_ADDRESS=\K[\d.]+' || true)
+        # Also try the new metadata endpoint
+        if [ ${#FLEX_IPS[@]} -eq 0 ]; then
+          mapfile -t FLEX_IPS < <(curl -s "http://169.254.42.42/conf?format=json" 2>/dev/null | jq -r '.public_ip.address // empty, (.flexible_ips // [] | .[].address)' 2>/dev/null || true)
+        fi
+      fi
+
+      # Add any IPs not already configured
+      EXISTING=$(ip -4 addr show "$IFACE" scope global | grep -oP 'inet \K[\d.]+')
+      for IP in "${FLEX_IPS[@]}"; do
+        if ! echo "$EXISTING" | grep -q "^${IP}$"; then
+          echo "Adding $IP to $IFACE"
+          ip addr add "${IP}/32" dev "$IFACE" || true
+        fi
+      done
+
+      echo "All IPs on $IFACE:"
+      ip -4 addr show "$IFACE" scope global | grep -oP 'inet \K[\d.]+'
+
+runcmd:
+  - /usr/local/bin/configure-flex-ips.sh
+  - /usr/local/bin/configure-squid-ips.sh
+  - systemctl enable squid
+  - systemctl restart squid
+  - echo "Proxy ready — $(ip -4 addr show scope global | grep -oP 'inet \K[\d.]+' | wc -l) IPs configured"

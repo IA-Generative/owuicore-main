@@ -205,15 +205,24 @@ def ensure_mcp_servers(db_path: str, servers: list[dict]) -> None:
         config = {}
 
     config.setdefault("tool_server", {})
-    existing_urls = {c.get("url") for c in config["tool_server"].get("connections", [])}
-
     connections = config["tool_server"].get("connections", [])
+
+    # Build lookup by URL
+    existing_by_url = {c.get("url"): i for i, c in enumerate(connections)}
+
     for server in servers:
-        if server["url"] not in existing_urls:
+        idx = existing_by_url.get(server["url"])
+        if idx is not None:
+            # Update existing entry (fix missing id, etc.)
+            old = connections[idx]
+            if not old.get("id") or old.get("id") != server.get("id"):
+                connections[idx] = server
+                print(f"  Updated MCP server: {server['name']} (fixed id)")
+            else:
+                print(f"  Already configured: {server['name']}")
+        else:
             connections.append(server)
             print(f"  Added MCP server: {server['name']}")
-        else:
-            print(f"  Already configured: {server['name']}")
 
     config["tool_server"]["connections"] = connections
 
@@ -226,6 +235,326 @@ def ensure_mcp_servers(db_path: str, servers: list[dict]) -> None:
             "INSERT INTO config (data, version, created_at, updated_at) VALUES (?, 0, ?, ?)",
             (json.dumps(config), now, now),
         )
+
+    conn.commit()
+    conn.close()
+
+
+def deploy_pipelines(plugins: list[Path], pipelines_dir: Path) -> int:
+    """Copy pipeline files declared in owui-plugin.yaml to the pipelines mount."""
+    pipelines_dir.mkdir(parents=True, exist_ok=True)
+    total = 0
+    for plugin_file in plugins:
+        plugin = yaml.safe_load(plugin_file.read_text())
+        plugin_dir = plugin_file.parent
+        plugin_name = plugin.get("name", plugin_dir.name)
+        files = plugin.get("pipelines", {}).get("files", [])
+        if not files:
+            continue
+        for rel_path in files:
+            src = plugin_dir / rel_path
+            if not src.exists():
+                print(f"  SKIP {plugin_name}: {rel_path} not found")
+                continue
+            dst = pipelines_dir / src.name
+            dst.write_text(src.read_text())
+            print(f"  Copied: {src.name} ({plugin_name})")
+            total += 1
+    return total
+
+
+def ensure_owui_config(db_path: str) -> None:
+    """Ensure OpenWebUI config entries for web search, image gen, etc."""
+    conn = sqlite3.connect(db_path)
+    rows = conn.execute("SELECT id, data FROM config ORDER BY id DESC LIMIT 1").fetchall()
+
+    if rows:
+        config = json.loads(rows[0][1])
+    else:
+        config = {}
+
+    changed = False
+
+    # --- Web search (SearXNG) ---
+    # Disabled as OWUI feature to avoid auto-injection and max_tokens overflow.
+    # SearXNG remains available via direct API calls from tools.
+    if "web_search" not in config:
+        config["web_search"] = {
+            "enable": False,
+            "engine": "searxng",
+            "searxng_query_url": os.environ.get("SEARXNG_QUERY_URL", "http://searxng:8080/search"),
+        }
+        print("  Configured: web search (disabled as OWUI feature, SearXNG available for tools)")
+        changed = True
+    else:
+        print("  Already configured: web search")
+
+    # --- Image generation ---
+    if "image_generation" not in config:
+        config["image_generation"] = {
+            "enable": True,
+            "engine": "openai",
+            "openai": {
+                "IMAGES_OPENAI_API_BASE_URL": os.environ.get("IMAGES_OPENAI_API_BASE_URL", "http://image-gen:9100/v1"),
+                "IMAGES_OPENAI_API_KEY": os.environ.get("HF_TOKEN", ""),
+            },
+            "model": os.environ.get("HF_IMAGE_MODEL", "black-forest-labs/FLUX.1-schnell"),
+        }
+        print("  Configured: image generation (HuggingFace proxy)")
+        changed = True
+    else:
+        print("  Already configured: image generation")
+
+    # --- Default model ---
+    default_model = os.environ.get("DEFAULT_MODEL", "")
+    if default_model and config.get("default_models") != default_model:
+        config["default_models"] = default_model
+        print(f"  Configured: default model = {default_model}")
+        changed = True
+
+    if changed:
+        if rows:
+            conn.execute("UPDATE config SET data = ? WHERE id = ?", (json.dumps(config), rows[0][0]))
+        else:
+            import datetime
+            now = datetime.datetime.now(datetime.timezone.utc).isoformat()
+            conn.execute(
+                "INSERT INTO config (data, version, created_at, updated_at) VALUES (?, 0, ?, ?)",
+                (json.dumps(config), now, now),
+            )
+        conn.commit()
+
+    conn.close()
+
+
+def make_tools_global(db_path: str) -> None:
+    """Set access_control on all tools and filters so every user can use them."""
+    public_acl = {"read": {"group_ids": [], "user_ids": []}, "write": {"group_ids": [], "user_ids": []}}
+    conn = sqlite3.connect(db_path)
+
+    # Tools
+    for row in conn.execute("SELECT id, meta FROM tool").fetchall():
+        meta = json.loads(row[1]) if row[1] else {}
+        if meta.get("access_control") != public_acl:
+            meta["access_control"] = public_acl
+            conn.execute("UPDATE tool SET meta = ? WHERE id = ?", (json.dumps(meta), row[0]))
+            print(f"  Tool {row[0]}: set global access")
+
+    # Functions (filters)
+    for row in conn.execute("SELECT id, meta, is_global FROM function").fetchall():
+        meta = json.loads(row[1]) if row[1] else {}
+        changed = False
+        if meta.get("access_control") != public_acl:
+            meta["access_control"] = public_acl
+            changed = True
+        updates = []
+        if changed:
+            updates.append(("meta", json.dumps(meta)))
+        if not row[2]:  # is_global = 0
+            updates.append(("is_global", 1))
+        if updates:
+            set_clause = ", ".join(f"{k} = ?" for k, _ in updates)
+            values = [v for _, v in updates] + [row[0]]
+            conn.execute(f"UPDATE function SET {set_clause} WHERE id = ?", values)
+            print(f"  Filter {row[0]}: set global access")
+
+    conn.commit()
+    conn.close()
+
+
+SYSTEM_PROMPTS = {
+    # --- Pipeline models ---
+    "anef-regulatory.assistant": (
+        "Tu es un assistant réglementaire spécialisé dans le droit des étrangers en France "
+        "(CESEDA, titres de séjour ANEF). Tu réponds exclusivement en français.\n\n"
+        "Tes capacités :\n"
+        "- Rechercher un titre de séjour par mots-clés\n"
+        "- Vérifier l'éligibilité d'un demandeur et lister les pièces justificatives\n"
+        "- Expliquer les conditions d'obtention, le fondement légal et les points de vigilance\n"
+        "- Générer des fiches réflexe pour les agents\n\n"
+        "Règles impératives :\n"
+        "- Ne jamais inventer d'article de loi, de condition ou de pièce justificative.\n"
+        "- Toujours citer la base légale (article CESEDA) quand disponible.\n"
+        "- Signaler clairement quand une vérification humaine est nécessaire.\n"
+        "- Distinguer métropole / Mayotte quand le contexte l'exige.\n"
+        "- Les liens vers les articles s'ouvrent dans le viewer intégré."
+    ),
+    "anef-regulatory.legal": (
+        "Tu es un assistant juridique spécialisé dans le CESEDA (Code de l'entrée et du séjour "
+        "des étrangers et du droit d'asile). Tu réponds exclusivement en français.\n\n"
+        "Tes capacités :\n"
+        "- Rechercher des articles de loi par mots-clés ou numéro d'article\n"
+        "- Expliquer le contenu d'un article en langage clair\n"
+        "- Croiser plusieurs articles pour répondre à une question juridique\n\n"
+        "Règles impératives :\n"
+        "- Ne citer que des articles réellement retournés par la recherche.\n"
+        "- Ne jamais inventer de contenu juridique.\n"
+        "- Toujours fournir la référence exacte (numéro d'article, section).\n"
+        "- Signaler si la réponse nécessite une validation par un juriste."
+    ),
+    "graphrag-bridge.graphrag-local": (
+        "Tu es un assistant de recherche documentaire utilisant GraphRAG (méthode locale). "
+        "Tu analyses un corpus de documents structurés sous forme de graphe de connaissances.\n\n"
+        "Tes capacités :\n"
+        "- Répondre à des questions factuelles à partir du corpus indexé\n"
+        "- Citer les sources et documents pertinents\n"
+        "- Fournir un lien vers le graphe interactif pour explorer les relations\n\n"
+        "Règles :\n"
+        "- Base tes réponses uniquement sur les documents du corpus.\n"
+        "- Cite toujours tes sources (noms de fichiers, sections).\n"
+        "- Si l'information n'est pas dans le corpus, dis-le clairement.\n"
+        "- Pour sélectionner un corpus spécifique, utilise la syntaxe [[corpus:id]] devant la question."
+    ),
+    "graphrag-bridge.graphrag-global": (
+        "Tu es un assistant de recherche documentaire utilisant GraphRAG (méthode globale). "
+        "Tu synthétises l'ensemble d'un corpus pour produire des analyses de haut niveau.\n\n"
+        "Tes capacités :\n"
+        "- Produire des synthèses thématiques sur l'ensemble du corpus\n"
+        "- Identifier les thèmes dominants, les acteurs clés, les chronologies\n"
+        "- Comparer et croiser des informations entre documents\n\n"
+        "Règles :\n"
+        "- Privilégie les vues d'ensemble et les analyses transversales.\n"
+        "- Cite les sources quand tu détailles un point spécifique.\n"
+        "- Si l'information n'est pas dans le corpus, dis-le clairement."
+    ),
+    # --- Scaleway LLM models (general purpose with tool calling) ---
+    "__default_llm__": (
+        "Tu es MirAI, un assistant intelligent. Reponds dans la langue de l'utilisateur.\n\n"
+        "QUAND UTILISER QUEL OUTIL :\n\n"
+        "Si l'utilisateur donne une URL :\n"
+        "- \"capture\", \"screenshot\", \"voir le site\", \"montre-moi\" → `screenshot(url)`\n"
+        "- \"extrais\", \"contenu\", \"lis\", \"resume cette page\" → `websnap(url)`\n"
+        "- \"compare\" + plusieurs URLs → `compare_urls(urls)`\n\n"
+        "Si l'utilisateur uploade une image → `analyze_image(query)`\n\n"
+        "Si l'utilisateur parle de donnees (CSV, Excel, fichier) :\n"
+        "- apercu / premieres lignes → `data_preview(url)`\n"
+        "- schema / colonnes / types → `data_schema(url)`\n"
+        "- question sur les donnees → `data_query(url, question)`\n\n"
+        "Si l'utilisateur parle de Tchap (messagerie) :\n"
+        "- se connecter → `tchap_connect()`\n"
+        "- lister les salons → `tchap_rooms()`\n"
+        "- chercher un salon → `tchap_search_rooms(query)`\n"
+        "- analyser un salon → `tchap_analyze(room_id, question, since_hours)`\n"
+        "- administration → `tchap_admin(action, target)` (admins uniquement)\n\n"
+        "Donnees ouvertes : le serveur MCP data.gouv.fr est disponible pour chercher des jeux de donnees publics.\n\n"
+        "Regles :\n"
+        "- Appelle un seul outil a la fois, le plus specifique possible.\n"
+        "- Ne reponds jamais a la place d'un outil : appelle-le.\n"
+        "- Ne fabrique pas d'URL, de salons, ni de messages.\n"
+        "- Cite toujours la source (URL) dans ta reponse.\n"
+        "- Pour Tchap : pseudonymise les noms (Utilisateur_1, etc.)."
+    ),
+}
+
+VISION_SYSTEM_PROMPT = (
+    "Tu es un assistant multimodal. Quand des images sont présentes dans la conversation :\n\n"
+    "1. **Si l'image contient du texte** (imprimé, manuscrit, formulaire, tableau, capture d'écran) :\n"
+    "   - Concentre-toi PRIORITAIREMENT sur l'extraction et la retranscription fidèle du texte.\n"
+    "   - Reproduis le texte tel quel, en préservant la structure (paragraphes, listes, tableaux).\n"
+    "   - Pour l'écriture manuscrite, transcris au mieux et signale les mots incertains avec [illisible] ou [incertain: mot].\n"
+    "   - Mentionne brièvement le contexte visuel (ex: « Document scanné, format A4, en-tête ministériel ») "
+    "mais ne décris pas l'image en détail.\n\n"
+    "2. **Si l'image ne contient pas de texte** (photo, schéma, graphique) :\n"
+    "   - Fournis une description détaillée du contenu visuel.\n"
+    "   - Pour les graphiques/diagrammes, extrais les données clés et les tendances.\n\n"
+    "3. **Règles générales :**\n"
+    "   - Réponds TOUJOURS dans la même langue que le message de l'utilisateur.\n"
+    "   - Utilise les liens markdown cliquables pour référencer les images, ne les invente pas.\n"
+    "   - Si plusieurs images sont présentes, traite-les dans l'ordre."
+)
+
+
+def register_pipeline_models(db_path: str, pipelines_api_url: str, api_key: str) -> None:
+    """Fetch pipeline models from the API and register them in the model table with global access and system prompts."""
+    import urllib.request
+
+    url = f"{pipelines_api_url}/v1/models"
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {api_key}"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read())
+    except Exception as exc:
+        print(f"  Could not fetch pipelines models: {exc}")
+        return
+
+    public_acl = {"read": {"group_ids": [], "user_ids": []}, "write": {"group_ids": [], "user_ids": []}}
+    conn = sqlite3.connect(db_path)
+    now = int(time.time())
+
+    for model in data.get("data", []):
+        model_id = model["id"]
+        model_name = model["name"]
+        system_prompt = SYSTEM_PROMPTS.get(model_id, "")
+        meta = json.dumps({
+            "access_control": public_acl,
+            "description": "",
+            "capabilities": {},
+        })
+        params = json.dumps({"system": system_prompt} if system_prompt else {})
+        conn.execute(
+            """INSERT OR REPLACE INTO model
+            (id, user_id, base_model_id, name, meta, params, is_active, created_at, updated_at)
+            VALUES (?, '', ?, ?, ?, ?, 1, ?, ?)""",
+            (model_id, model_id, model_name, meta, params, now, now),
+        )
+        print(f"  Model {model_id}: {model_name} (global, prompt={'yes' if system_prompt else 'no'})")
+
+    conn.commit()
+    conn.close()
+
+
+def register_llm_models(db_path: str, llm_api_url: str, api_key: str) -> None:
+    """Register Scaleway LLM models with default system prompt and global access."""
+    import urllib.request
+
+    url = f"{llm_api_url}/models"
+    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {api_key}"})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            data = json.loads(resp.read())
+    except Exception as exc:
+        print(f"  Could not fetch LLM models: {exc}")
+        return
+
+    public_acl = {"read": {"group_ids": [], "user_ids": []}, "write": {"group_ids": [], "user_ids": []}}
+    conn = sqlite3.connect(db_path)
+    now = int(time.time())
+
+    # Skip embedding and audio models
+    skip_patterns = ["embedding", "whisper", "bge-"]
+    vision_models = ["pixtral"]
+    default_prompt = SYSTEM_PROMPTS["__default_llm__"]
+
+    for model in data.get("data", []):
+        model_id = model["id"]
+        if any(p in model_id.lower() for p in skip_patterns):
+            continue
+
+        is_vision = any(v in model_id.lower() for v in vision_models)
+        system_prompt = VISION_SYSTEM_PROMPT if is_vision else default_prompt
+
+        # Tool IDs to attach to the model
+        tool_ids = ["tchapreader", "tchapreader_admin", "websnap", "dataview"]
+        filter_ids = ["vision_image_filter"] if is_vision else []
+
+        meta = json.dumps({
+            "access_control": public_acl,
+            "description": "Vision LLM" if is_vision else "",
+            "capabilities": {"vision": True} if is_vision else {},
+            "toolIds": tool_ids,
+            "filterIds": filter_ids,
+        })
+        params = json.dumps({"system": system_prompt})
+
+        # Use pipelines prefix for routing through pipelines service
+        conn.execute(
+            """INSERT OR REPLACE INTO model
+            (id, user_id, base_model_id, name, meta, params, is_active, created_at, updated_at)
+            VALUES (?, '', ?, ?, ?, ?, 1, ?, ?)""",
+            (model_id, model_id, model_id, meta, params, now, now),
+        )
+        label = "vision" if is_vision else "chat"
+        print(f"  Model {model_id} ({label}, {len(tool_ids)} tools)")
 
     conn.commit()
     conn.close()
@@ -283,10 +612,21 @@ def main():
     total = register_tools_in_db(db_path, plugins, url_context)
     print(f"\nRegistered {total} tools")
 
-    # 2. Ensure MCP servers
+    # 2. Deploy pipelines
+    print("\n--- Pipelines ---")
+    if args.mode == "docker":
+        # /pipelines-out is mounted RW from host ./pipelines/
+        pipelines_dir = Path("/pipelines-out") if Path("/pipelines-out").exists() else ROOT_DIR / "pipelines"
+    else:
+        pipelines_dir = Path("/app/pipelines")
+    pipeline_count = deploy_pipelines(plugins, pipelines_dir)
+    print(f"Deployed {pipeline_count} pipelines")
+
+    # 3. Ensure MCP servers
     print("\n--- MCP Servers ---")
     mcp_servers = [
         {
+            "id": "data-gouv-fr",
             "url": "https://mcp.data.gouv.fr/mcp",
             "type": "mcp",
             "path": "",
@@ -298,6 +638,32 @@ def main():
         },
     ]
     ensure_mcp_servers(db_path, mcp_servers)
+
+    # 4. Ensure OpenWebUI config (web search, image gen)
+    print("\n--- OpenWebUI Config ---")
+    ensure_owui_config(db_path)
+
+    # 5. Make all tools and filters globally accessible
+    print("\n--- Global Access ---")
+    make_tools_global(db_path)
+
+    # 6. Register pipeline models with global access
+    print("\n--- Pipeline Models ---")
+    pipelines_url = os.environ.get("PIPELINES_URL", "http://pipelines:9099")
+    pipelines_key = os.environ.get("PIPELINES_API_KEY", "")
+    if pipelines_key:
+        register_pipeline_models(db_path, pipelines_url, pipelines_key)
+    else:
+        print("  SKIP: PIPELINES_API_KEY not set")
+
+    # 7. Register Scaleway LLM models with system prompts and tool bindings
+    print("\n--- LLM Models ---")
+    llm_url = os.environ.get("SCW_LLM_BASE_URL", "")
+    llm_key = os.environ.get("SCW_SECRET_KEY_LLM", "")
+    if llm_url and llm_key:
+        register_llm_models(db_path, llm_url, llm_key)
+    else:
+        print("  SKIP: SCW_LLM_BASE_URL or SCW_SECRET_KEY_LLM not set")
 
     print("\n=== Done ===")
 
