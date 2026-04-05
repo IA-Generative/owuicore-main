@@ -165,13 +165,27 @@ def register_tools_in_db(db_path: str, plugins: list[Path], url_context: str = "
                 },
             })
 
-            conn.execute(
-                """INSERT OR REPLACE INTO tool
-                (id, user_id, name, content, specs, meta, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                (tool_id, "", entry.get("name", tool_id), content, json.dumps(specs), meta, now, now),
-            )
-            print(f"  OK: {tool_id} ({len(specs)} methods)")
+            # Detect if it's a filter (class Filter) or a tool (class Tools)
+            is_filter = "class Filter" in content and "class Tools" not in content
+
+            if is_filter:
+                conn.execute(
+                    """INSERT OR REPLACE INTO function
+                    (id, user_id, name, type, content, meta, is_active, is_global, created_at, updated_at)
+                    VALUES (?, ?, ?, 'filter', ?, ?, 1, 1, ?, ?)""",
+                    (tool_id, "", entry.get("name", tool_id), content, meta, now, now),
+                )
+                # Remove from tool table if it was incorrectly placed there
+                conn.execute("DELETE FROM tool WHERE id = ?", (tool_id,))
+                print(f"  OK: {tool_id} (filter, {len(specs)} methods)")
+            else:
+                conn.execute(
+                    """INSERT OR REPLACE INTO tool
+                    (id, user_id, name, content, specs, meta, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (tool_id, "", entry.get("name", tool_id), content, json.dumps(specs), meta, now, now),
+                )
+                print(f"  OK: {tool_id} ({len(specs)} methods)")
             total += 1
 
     conn.commit()
