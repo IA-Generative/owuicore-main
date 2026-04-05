@@ -21,6 +21,8 @@ services:
       OAUTH_SCOPES: openid profile email
       OPENAI_API_BASE_URL: http://pipelines:9099/v1
       OPENAI_API_KEY: ${PIPELINES_API_KEY:-CHANGE_ME}
+      OPENAI_API_BASE_URLS: ${OPENAI_API_BASE_URLS:-http://pipelines:9099/v1}
+      OPENAI_API_KEYS: ${OPENAI_API_KEYS:-${PIPELINES_API_KEY:-CHANGE_ME}}
       ENABLE_WEB_SEARCH: ${ENABLE_WEB_SEARCH:-true}
       WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE:-searxng}
       WEB_SEARCH_RESULT_COUNT: ${WEB_SEARCH_RESULT_COUNT:-5}
@@ -133,6 +135,23 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+
+  ensure-tools:
+    image: python:3.12-slim
+    working_dir: /socle
+    command: ["bash", "-c", "pip install -q pyyaml && python3 scripts/ensure_tools.py --mode docker --wait --db-path /owui-data/webui.db"]
+    environment:
+      PLUGIN_PATHS: ${PLUGIN_PATHS:-}
+    volumes:
+      - .:/socle:ro
+      - openwebui-data:/owui-data
+      - ..:/parent:ro
+    depends_on:
+      openwebui:
+        condition: service_healthy
+    networks:
+      - owui-net
+    restart: "no"
 
   register-watcher:
     profiles: ["dev"]

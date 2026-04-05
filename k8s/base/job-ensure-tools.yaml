@@ -1,0 +1,52 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: ensure-tools
+  namespace: ${NAMESPACE}
+  labels:
+    app: ensure-tools
+spec:
+  ttlSecondsAfterFinished: 300
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: ensure-tools
+          image: python:3.12-slim
+          command:
+            - bash
+            - -c
+            - |
+              pip install -q pyyaml &&
+              python3 /scripts/ensure_tools.py \
+                --mode k8s \
+                --wait \
+                --db-path /owui-data/webui.db
+          volumeMounts:
+            - name: scripts
+              mountPath: /scripts
+              readOnly: true
+            - name: owui-data
+              mountPath: /owui-data
+            - name: plugins
+              mountPath: /plugins
+              readOnly: true
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+      volumes:
+        - name: scripts
+          configMap:
+            name: ensure-tools-scripts
+        - name: owui-data
+          persistentVolumeClaim:
+            claimName: owui-data
+        - name: plugins
+          configMap:
+            name: plugin-registry
+            optional: true

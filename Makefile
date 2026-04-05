@@ -33,8 +33,11 @@ ps: ## List running services
 
 # --- Plugin management ---
 
-register: ## Register all plugins (tools, pipelines, model_tools) from discovered repos
+register: ## Register all plugins (tools, pipelines, model_tools) via OWUI API
 	python3 scripts/register_plugins.py
+
+ensure-tools: ## Ensure tools + MCP servers are in OWUI DB (idempotent, runs after boot)
+	python3 scripts/ensure_tools.py --mode docker --wait
 
 discover: ## List discovered plugin repos
 	bash scripts/discover_plugins.sh
