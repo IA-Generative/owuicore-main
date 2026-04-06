@@ -274,7 +274,44 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 
 ---
 
-## 11. Tchap — Messagerie (si configure)
+## 11. Grist — Données collaboratives
+
+> **MCP a activer** : `Grist (mcp)` dans le sélecteur d'outils
+> Nécessite le service `grist-mcp` lancé (docker compose up -d dans owuitools-gristmcp)
+
+### T11.1 — Lister les organisations
+- **Modele** : gpt-oss-120b
+- **Prompt** : `Liste mes organisations Grist`
+- **Attendu** : Le MCP Grist appelle `list_organizations`, retourne les orgs disponibles
+- [ ] OK
+
+### T11.2 — Lister les documents
+- **Modele** : gpt-oss-120b
+- **Prompt** : `Quels documents sont disponibles dans mon espace Grist ?`
+- **Attendu** : Le MCP appelle `list_workspaces` puis `list_documents`, retourne les docs
+- [ ] OK
+
+### T11.3 — Lire une table
+- **Modele** : gpt-oss-120b
+- **Prompt** : `Montre-moi le contenu de la table Epics dans le document peRx9ZSrNDhm3c3Jh9GKS2`
+- **Attendu** : Le MCP appelle `list_records`, retourne les lignes de la table
+- [ ] OK
+
+### T11.4 — Requete SQL
+- **Modele** : gpt-oss-120b
+- **Prompt** : `Execute une requete SQL sur le document peRx9ZSrNDhm3c3Jh9GKS2 : SELECT * FROM Epics LIMIT 5`
+- **Attendu** : Le MCP appelle `execute_sql_query`, retourne les résultats
+- [ ] OK
+
+### T11.5 — Export CSV
+- **Modele** : gpt-oss-120b
+- **Prompt** : `Exporte la table Epics du document peRx9ZSrNDhm3c3Jh9GKS2 en CSV`
+- **Attendu** : Le MCP appelle `download_table_csv`, retourne le CSV
+- [ ] OK
+
+---
+
+## 12. Tchap — Messagerie (si configure)
 
 > **Tools a activer** : `tchapreader`
 > Configurer les credentials Tchap dans les parametres utilisateur du tool (icone engrenage).

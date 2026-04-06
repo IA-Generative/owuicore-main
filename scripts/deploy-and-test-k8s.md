@@ -40,6 +40,14 @@ cd ~/Documents/GitHub/owuitools-tchapreader
 TAG="$(date +%Y%m%d-%H%M%S)"
 docker buildx build --platform linux/amd64 --push -t "${REGISTRY}/tchap-reader:${TAG}" -f Dockerfile .
 kubectl set image deploy/tchap-reader -n miraiku "tchap-reader=${REGISTRY}/tchap-reader:${TAG}"
+
+# Grist MCP
+cd ~/Documents/GitHub/owuitools-gristmcp
+./deploy.sh
+# Ou manuellement :
+# TAG="$(date +%Y%m%d-%H%M%S)"
+# docker buildx build --platform linux/amd64 --push -t "${REGISTRY}/grist-mcp:${TAG}" -f Dockerfile .
+# GRIST_API_KEY=$(grep GRIST_API_KEY .env | cut -d= -f2) envsubst < k8s/deployment.yaml | kubectl apply -f -
 ```
 
 **CHECK** : Vérifier que chaque `kubectl set image` retourne "image updated", puis `kubectl rollout status deploy/XXX -n miraiku --timeout=120s` pour chaque.
