@@ -1,34 +1,14 @@
 # Bugs connus et workarounds
 
-## 1. NoneType is not iterable sur les tool calls (OWUI v0.8.12)
+## 1. NoneType is not iterable sur les tool calls (RESOLU)
 
-**Symptome** : Le LLM appelle un tool (ex: `data_search`) mais l'UI affiche `'NoneType' object is not iterable`. Aucune erreur dans les logs serveur.
+**Symptome** : Le LLM appelle un tool mais l'UI affiche `'NoneType' object is not iterable`. Aucune erreur dans les logs serveur.
 
-**Cause racine** : Bug dans le middleware Open WebUI v0.8.12 (`utils/middleware.py`). Quand le LLM Scaleway retourne un `tool_calls` avec des arguments vides (`"arguments": "{\"query\": \"\"}"`), OWUI crashe en iterant un champ `None` lors du processing du resultat du tool. L'erreur est dans le stream SSE, pas dans les logs serveur — invisible cote backend.
+**Cause racine trouvee** : C'etait notre filter `dataview_auto_preview` qui crashait, PAS un bug OWUI. Le filter iterait `body["metadata"]["files"]` qui peut etre `null` (pas `[]`). L'erreur etait masquee par `log.debug` dans `main.py` (voir section Debug).
 
-**Comment diagnostiquer** :
-1. Les logs serveur montrent `POST /api/chat/completions 200` (pas d'erreur)
-2. Le chat history en DB montre un assistant vide (pas de contenu, pas de tool_calls)
-3. Tester l'API Scaleway directement pour voir ce que le LLM envoie :
-```bash
-SCW_URL=$(grep "^SCW_LLM_BASE_URL=" .env | cut -d= -f2)
-SCW_KEY=$(grep "^SCW_SECRET_KEY_LLM=" .env | cut -d= -f2)
-curl -s -X POST "${SCW_URL}/chat/completions" \
-  -H "Authorization: Bearer $SCW_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "model": "gpt-oss-120b",
-    "messages": [{"role": "user", "content": "Peux-tu lister les données open data ?"}],
-    "tools": [{"type":"function","function":{"name":"data_search","parameters":{"type":"object","properties":{"query":{"type":"string"}}}}}]
-  }' | jq '.choices[0].message.tool_calls'
-```
-Si le LLM retourne `"arguments": "{\"query\": \"\"}"` → c'est le bug.
+**Resolution** : `.get("files") or []` au lieu de `.get("files", [])` dans le filter dataview_auto_preview. Voir bug #6 pour le detail complet.
 
-**Workarounds appliques** :
-- System prompt avec instruction explicite : `"query ne doit JAMAIS etre vide, utilise les mots-cles de l'utilisateur ou 'donnees ouvertes' par defaut"`
-- Fallback dans le tool : si `query` est vide, utilise `"données ouvertes"` par defaut
-
-**Fix definitif** : Mettre a jour Open WebUI vers une version > 0.8.12.
+**Note** : Le MCP data.gouv.fr ("Open Data (mcp)") a ete reactive apres ce fix. Le crash n'etait pas lie au MCP.
 
 ---
 
