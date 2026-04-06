@@ -138,6 +138,13 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 - **Attendu** : Le modele enchaine data_search puis data_preview
 - [ ] OK
 
+### T4.10 — Donnees temps reel (fallback websnap)
+- **Modele** : gpt-oss-120b
+- **Prompt** : `Quelle est la qualite de l'air a Paris en ce moment ? Utilise airparif`
+- **Attendu** : Le modele detecte que data_search ne retourne rien de pertinent (pas de donnees temps reel sur data.gouv.fr) et utilise websnap("https://www.airparif.asso.fr/") pour extraire les indices ATMO actuels depuis le site web
+- **Note** : Teste la capacite du LLM a choisir le bon tool quand data_search echoue. Actuellement KO — le LLM suggere le site mais n'appelle pas websnap spontanement.
+- [ ] OK
+
 ---
 
 ## 6. Generation d'images
