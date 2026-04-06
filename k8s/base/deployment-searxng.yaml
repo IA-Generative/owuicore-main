@@ -18,6 +18,8 @@ spec:
           image: ${SEARXNG_IMAGE}
           imagePullPolicy: IfNotPresent
           env:
+            - name: SEARXNG_PORT
+              value: "8080"  # Override k8s service discovery (SEARXNG_PORT=tcp://...) that crashes granian
             - name: SEARXNG_SETTINGS_PATH
               value: /etc/searxng/settings.yml
             - name: SEARXNG_BASE_URL
