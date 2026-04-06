@@ -293,8 +293,8 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 
 ### T11.3 — Lire une table
 - **Modele** : gpt-oss-120b
-- **Prompt** : `Montre-moi le contenu de la table Epics dans le document qXWzdtyGgNh2T64Ti1SQfc`
-- **Attendu** : Le tool `grist_read_table("qXWzdtyGgNh2T64Ti1SQfc", "Epics")` affiche les donnees dans un tableau HTML
+- **Prompt** : `Lis la table Epics du document qXWzdtyGgNh2T64Ti1SQfc`
+- **Attendu** : Le tool `grist_read_table("qXWzdtyGgNh2T64Ti1SQfc", "Epics")` affiche les donnees dans un tableau HTML + le LLM synthetise le contenu (toutes les lignes sont dans le contexte)
 - [ ] OK
 
 ### T11.4 — Requete SQL
@@ -307,6 +307,12 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 - **Modele** : gpt-oss-120b
 - **Prompt** : `Exporte la table Epics du document qXWzdtyGgNh2T64Ti1SQfc en CSV`
 - **Attendu** : Le tool `grist_export("qXWzdtyGgNh2T64Ti1SQfc", "Epics")` retourne le CSV avec apercu
+- [ ] OK
+
+### T11.6 — Navigation puis lecture (chaine complete)
+- **Modele** : gpt-oss-120b
+- **Prompt** : `Liste les epics du document Gestion PI SDID sur Grist`
+- **Attendu** : Le LLM enchaine `grist_navigate(org_name="SDID")` pour trouver le doc_id, puis `grist_read_table(doc_id, "Epics")` et synthetise les donnees
 - [ ] OK
 
 ---
