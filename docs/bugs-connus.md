@@ -269,6 +269,35 @@ print('OK' if 'image_analysis' in result['messages'][-1]['content'] else 'FAIL')
 
 ---
 
+## 15. MCP Grist — LLM ne peut pas appeler les tools (CONNU)
+
+**Symptome** : Le MCP Grist se connecte (logs HTTP 200, session créée) mais le LLM écrit `"We need to call list_organizations"` en texte au lieu de faire un vrai tool call. Ou bien il s'arrête aux métadonnées sans lire les tables.
+
+**Cause racine** : OWUI v0.8.12 charge les specs des tools MCP **paresseusement** (à la première utilisation). Mais quand il envoie les tools au LLM, les specs sont vides (0 functions). Le LLM ne sait pas quels tools appeler → il écrit en texte ce qu'il voudrait faire.
+
+**Diagnostic** :
+```bash
+# Vérifier les specs MCP
+docker exec owuicore-openwebui-1 python3 -c "
+import httpx, sqlite3
+db = sqlite3.connect('/app/backend/data/webui.db')
+key = db.execute('SELECT key FROM api_key LIMIT 1').fetchone()
+r = httpx.get('http://localhost:8080/api/v1/tools/', headers={'Authorization': f'Bearer {key[0]}'})
+for t in r.json():
+    if 'mcp' in t['id']:
+        print(f'{t[\"id\"]}: {len(t.get(\"specs\",[]))} functions')
+"
+# Si 0 functions → le LLM ne peut pas appeler les tools
+```
+
+**Workaround à implémenter** : Créer un **wrapper tool OWUI** (comme tchapreader) qui appelle l'API Grist directement via `httpx`. Le tool expose des fonctions explicites (`grist_list_orgs`, `grist_read_table`, `grist_query`) que le LLM peut voir dans les specs et appeler normalement.
+
+**Autre limitation** : OWUI v0.8.12 ne supporte qu'**un seul round de tool call par message**. Pour naviguer dans Grist (list_orgs → list_workspaces → list_tables → list_records), l'utilisateur doit relancer le prompt à chaque étape, ou le wrapper tool doit enchaîner les appels en interne.
+
+**Note** : Le GristClient de mcp-server-grist retourne des objets Pydantic (pas des dicts). Utiliser `model_dump()` pour les convertir.
+
+---
+
 # Guide de debug OWUI
 
 ## Erreurs invisibles dans les logs
