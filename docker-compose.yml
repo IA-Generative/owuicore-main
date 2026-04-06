@@ -37,9 +37,7 @@ services:
       OPENAI_API_KEY: ${PIPELINES_API_KEY:-CHANGE_ME}
       OPENAI_API_BASE_URLS: ${OPENAI_API_BASE_URLS:-http://pipelines:9099/v1}
       OPENAI_API_KEYS: ${OPENAI_API_KEYS:-${PIPELINES_API_KEY:-CHANGE_ME}}
-      # Web search disabled as OWUI feature (avoids auto-injection + max_tokens overflow)
-      # SearXNG remains available for tools/MCP that call it directly
-      ENABLE_WEB_SEARCH: "false"
+      ENABLE_WEB_SEARCH: "true"
       WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE:-searxng}
       SEARXNG_QUERY_URL: ${SEARXNG_QUERY_URL:-http://searxng:8080/search}
       ENABLE_IMAGE_GENERATION: "true"
