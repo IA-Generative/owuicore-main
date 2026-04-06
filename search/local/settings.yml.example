@@ -1,6 +1,7 @@
 use_default_settings:
   engines:
     keep_only:
+      - google
       - duckduckgo
       - brave
       - startpage
@@ -8,7 +9,6 @@ use_default_settings:
       - mojeek
       - wikipedia
       - bing
-      - google
 
 general:
   instance_name: "MirAI Search Local"
@@ -16,7 +16,7 @@ general:
 
 search:
   safe_search: 1
-  autocomplete: "duckduckgo"
+  autocomplete: "google"
   formats:
     - html
     - json
@@ -33,35 +33,37 @@ valkey:
   url: valkey://search-valkey:6379/0
 
 outgoing:
-  request_timeout: 8.0
-  max_request_timeout: 15.0
+  request_timeout: 10.0
+  max_request_timeout: 20.0
   retries: 2
   pool_connections: 50
   pool_maxsize: 10
   enable_http2: true
+  # Rotating proxy (uncomment and set credentials)
+  # proxies:
+  #   all://:
+  #     - http://user:key@proxy-host:3128
 
 engines:
-  # --- Moteurs généraux (par ordre de priorité) ---
-  - name: qwant
-    weight: 1.6
+  - name: google
+    weight: 1.8
   - name: startpage
-    weight: 1.4
-  - name: brave
-    weight: 0.5
-    disabled: true  # scraping → rate limited, use brave_api instead
-
-  - name: braveapi
-    engine: braveapi
-    api_key: CHANGE_ME
-    shortcut: brapi
     weight: 1.5
-  - name: mojeek
-    weight: 1.1
+  - name: qwant
+    weight: 1.4
   - name: duckduckgo
+    weight: 1.2
+  - name: mojeek
     weight: 1.0
   - name: wikipedia
     weight: 0.8
   - name: bing
     weight: 0.7
-  - name: google
-    weight: 0.6
+  - name: brave
+    weight: 0.3
+    disabled: true
+  - name: braveapi
+    engine: braveapi
+    api_key: CHANGE_ME
+    shortcut: brapi
+    weight: 0.4
