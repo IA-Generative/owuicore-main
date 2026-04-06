@@ -179,11 +179,14 @@ def register_tools_in_db(db_path: str, plugins: list[Path], url_context: str = "
                 conn.execute("DELETE FROM tool WHERE id = ?", (tool_id,))
                 print(f"  OK: {tool_id} (filter, {len(specs)} methods)")
             else:
+                # Preserve existing valves when updating a tool
+                existing = conn.execute("SELECT valves FROM tool WHERE id = ?", (tool_id,)).fetchone()
+                existing_valves = existing[0] if existing and existing[0] else None
                 conn.execute(
                     """INSERT OR REPLACE INTO tool
-                    (id, user_id, name, content, specs, meta, created_at, updated_at)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-                    (tool_id, "", entry.get("name", tool_id), content, json.dumps(specs), meta, now, now),
+                    (id, user_id, name, content, specs, meta, valves, created_at, updated_at)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                    (tool_id, "", entry.get("name", tool_id), content, json.dumps(specs), meta, existing_valves, now, now),
                 )
                 print(f"  OK: {tool_id} ({len(specs)} methods)")
             total += 1
