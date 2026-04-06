@@ -153,8 +153,27 @@ scripts/
   ensure_tools.py       # Decouvre les plugins, genere tools/prompts, ecrit en DB
 
 k8s/base/
-  deployment-openwebui.yaml  # Inclut lifecycle.postStart pour le patch MCP
+  deployment-openwebui.yaml  # Inclut lifecycle.postStart pour les patches
+  deployment-tika.yaml       # Extraction de contenu (PDF, DOCX, etc.)
+
+docs/
+  bugs-connus.md        # 13 bugs documentes + guide de debug OWUI
+  deploiement-k8s.md    # Ce fichier
+  cahier-de-tests.md    # 12 tests T4 (dataview) + autres sections
 ```
+
+## Valves des tools (URLs k8s)
+
+Apres chaque sync, les valves des tools doivent pointer vers les services k8s :
+
+| Tool | Valve | Valeur k8s |
+|------|-------|-----------|
+| dataview | dataview_api_url | http://data-query:8093 |
+| dataview | openwebui_url | http://openwebui:80 |
+| websnap | websnap_base_url | http://browser-use:80 |
+| tchapreader | tchap_api_url | http://tchap-reader:8087 |
+| vision_image_filter | llm_api_url | https://api.scaleway.ai/.../v1 |
+| vision_image_filter | llm_api_key | (cle Scaleway) |
 
 ## Mettre a jour l'etat de reference
 

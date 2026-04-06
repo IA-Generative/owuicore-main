@@ -235,3 +235,148 @@ On perd l'affichage "Reflexion pendant X secondes" (cosmetique) mais le contenu 
 **Fix applique** : Le filter lit maintenant les fichiers directement depuis le disque (`/app/backend/data/uploads/`) au lieu de passer par l'API HTTP. Plus besoin d'authentification.
 
 **Note** : Les fichiers sont stockes sous le format `{file_id}_{filename}` dans le repertoire uploads.
+
+---
+
+## 12. Upload d'image crashe avec "Unexpected token <"
+
+**Symptome** : L'upload d'une image (jpeg, png) echoue immediatement avec `Unexpected token '<', "<html> <h"... is not valid JSON`.
+
+**Cause racine** : OWUI tente de traiter (RAG/embeddings) chaque fichier uploade. Pour les images, le code leve `Exception('File type image/jpeg is not supported for processing')`. Le frontend recoit une page HTML d'erreur au lieu de JSON.
+
+**Fix applique** : Patch dans l'entrypoint docker-compose qui remplace le `raise Exception` par un `log.info` (skip silencieux). Les images sont gerees par le filter vision, pas par le RAG.
+
+```yaml
+# docker-compose.yml entrypoint
+python3 -c "
+c = open('/app/backend/open_webui/routers/files.py').read()
+old = \"raise Exception(f'File type {content_type} is not supported for processing')\"
+new = \"__import__('logging').getLogger(__name__).info(f'Skip processing {content_type}')\"
+open('/app/backend/open_webui/routers/files.py','w').write(c.replace(old, new))
+"
+```
+
+---
+
+## 13. Vision filter "returned no results" — image non detectee
+
+**Symptome** : Le filter vision s'execute (status "Analyzing 1 image(s)") mais retourne "no results" immediatement.
+
+**Cause racine** : OWUI met les images uploadees dans `body["metadata"]["files"]`, pas dans le content multimodal `image_url`. Le filter v2.0 ne cherchait que dans `content` (format OpenAI).
+
+**Fix applique** : Filter vision v3.0 cherche les images dans 3 sources :
+1. `body["metadata"]["files"]` — fichiers uploades (format OWUI)
+2. `body["files"]` — parfois utilise
+3. `messages[-1]["content"]` — format multimodal (image_url inline)
+
+Pour les fichiers uploades, le filter lit l'image depuis `/app/backend/data/uploads/` et la convertit en base64 data URI pour l'envoyer a pixtral.
+
+**Comment debugger** : Tester le filter en isolation :
+```bash
+docker exec owuicore-openwebui-1 python3 -c "
+import asyncio, sqlite3, json, os
+db = sqlite3.connect('/app/backend/data/webui.db')
+content = db.execute('SELECT content FROM function WHERE id=\"vision_image_filter\"').fetchone()[0]
+valves_str = db.execute('SELECT valves FROM function WHERE id=\"vision_image_filter\"').fetchone()[0]
+exec(content)
+f = Filter()
+for k, v in json.loads(valves_str).items(): setattr(f.valves, k, v)
+body = {'messages': [{'role': 'user', 'content': 'Que contient cette image ?'}],
+  'metadata': {'files': [{'type': 'file', 'id': 'FILE_ID_HERE', 'file': {'id': 'FILE_ID_HERE', 'filename': 'test.jpg', 'meta': {'content_type': 'image/jpeg'}}}]}}
+result = asyncio.run(f.inlet(body))
+print('OK' if 'image_analysis' in result['messages'][-1]['content'] else 'FAIL')
+"
+```
+
+---
+
+# Guide de debug OWUI
+
+## Erreurs invisibles dans les logs
+
+OWUI masque les erreurs de streaming/filters derriere `log.debug` dans `main.py` ligne ~1816. Pour les voir :
+
+```bash
+docker exec owuicore-openwebui-1 python3 -c "
+c = open('/app/backend/open_webui/main.py').read()
+c = c.replace(
+    \"log.debug(f'Error processing chat payload: {e}')\",
+    \"log.exception(f'Error processing chat payload: {e}')\"
+)
+open('/app/backend/open_webui/main.py', 'w').write(c)
+"
+docker restart owuicore-openwebui-1
+```
+
+Cela transforme les erreurs silencieuses en tracebacks complets dans les logs.
+
+## Ou sont les fichiers uploades
+
+```
+/app/backend/data/uploads/{file_id}_{filename}
+```
+
+## Ou sont les valves des tools/filters
+
+```sql
+-- Tools
+SELECT id, valves FROM tool;
+-- Filters
+SELECT id, valves FROM function;
+```
+
+Les valves sont appliquees au runtime via `Functions.get_function_valves_by_id()`. Elles survivent aux restarts mais sont ecrasees par `ensure-tools` si le tool est re-enregistre avec des valves vides.
+
+## Comment OWUI passe les fichiers aux filters
+
+Les fichiers uploades sont dans `body["metadata"]["files"]`, PAS dans `messages[-1]["files"]`. Structure :
+
+```json
+{
+  "type": "file",
+  "id": "uuid",
+  "file": {
+    "id": "uuid",
+    "filename": "photo.jpg",
+    "meta": {
+      "content_type": "image/jpeg",
+      "name": "photo.jpg",
+      "size": 1864952
+    }
+  }
+}
+```
+
+**Attention** : `body["metadata"]["files"]` peut etre `null` (pas `[]`). Toujours utiliser `or []`.
+
+## DOMPurify supprime les scripts dans les iframes
+
+Les HTMLResponse des tools sont affichees dans des iframes sandboxees. DOMPurify supprime tous les `<script>` tags. Impossible d'utiliser postMessage ou ResizeObserver pour redimensionner l'iframe. Utiliser `min-height` CSS comme workaround.
+
+Ref : https://github.com/open-webui/open-webui/discussions/17802
+
+## Tester un filter en isolation
+
+```bash
+docker exec owuicore-openwebui-1 python3 -c "
+import asyncio, sqlite3, json
+db = sqlite3.connect('/app/backend/data/webui.db')
+content = db.execute('SELECT content FROM function WHERE id=\"FILTER_ID\"').fetchone()[0]
+valves_str = db.execute('SELECT valves FROM function WHERE id=\"FILTER_ID\"').fetchone()[0]
+exec(content)
+f = Filter()
+if valves_str:
+    for k, v in json.loads(valves_str).items(): setattr(f.valves, k, v)
+body = {'messages': [{'role': 'user', 'content': 'test'}], 'metadata': {'files': []}}
+result = asyncio.run(f.inlet(body))
+print(result['messages'][-1]['content'][:200])
+"
+```
+
+## Patches OWUI appliques au demarrage
+
+Les patches sont dans l'entrypoint `docker-compose.yml` (Docker) et `lifecycle.postStart` (k8s) :
+
+1. **MCP label** : `server.get('name', 'MCP Tool Server')` → utilise le nom de la connexion
+2. **Image upload** : skip le processing RAG pour les images (gerees par le filter vision)
+3. **Error visibility** (optionnel) : `log.debug` → `log.exception` dans main.py
