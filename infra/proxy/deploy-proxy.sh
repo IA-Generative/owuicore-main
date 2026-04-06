@@ -10,11 +10,14 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
+# Load .env if present
+[[ -f "$SCRIPT_DIR/.env" ]] && set -a && source "$SCRIPT_DIR/.env" && set +a
+
 # ── Config ─────────────────────────────────────────
 PROJECT_NAME="owui-proxy"
 INSTANCE_TYPE="DEV1-S"
 IMAGE="ubuntu_noble"
-SCW_PROJECT_ID="a9158aac-8404-46ea-8bf5-1ca048cd6ab4"  # EricTiquet
+SCW_PROJECT_ID="${SCW_PROJECT_ID:?SCW_PROJECT_ID is required. Set it in infra/proxy/.env or export it.}"
 ZONES=("fr-par-1" "fr-par-2")
 VMS_PER_ZONE=2
 IPS_PER_VM=5
