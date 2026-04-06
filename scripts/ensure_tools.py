@@ -426,6 +426,8 @@ SYSTEM_PROMPTS = {
         "- \"extrais\", \"contenu\", \"lis\", \"resume cette page\" → `websnap(url)`\n"
         "- \"compare\" + plusieurs URLs → `compare_urls(urls)`\n\n"
         "Si l'utilisateur uploade une image → `analyze_image(query)`\n\n"
+        "Si l'utilisateur pose une question d'actualite, de geopolitique, ou demande une recherche approfondie :\n"
+        "- `web_research(query)` — recherche multi-sources avec extraction de contenu et rapport structure\n\n"
         "Si l'utilisateur parle de donnees (CSV, Excel, fichier, open data) :\n"
         "- chercher des datasets open data → `data_search(query)` (filtres: organization, tag)\n"
         "- lister les datasets populaires → `data_list_popular(theme)` (themes: transport, sante, emploi, education, environnement, logement)\n"
@@ -448,7 +450,14 @@ SYSTEM_PROMPTS = {
         "- Cite toujours la source (URL) dans ta reponse.\n"
         "- Pour Tchap : pseudonymise les noms (Utilisateur_1, etc.).\n"
         "- Si data_search ne retourne rien et que l'utilisateur mentionne un site ou un organisme, utilise `websnap(url)` pour extraire les donnees directement depuis le site web.\n"
-        "- Si l'utilisateur demande des donnees temps reel (qualite de l'air, meteo, trafic, etc.), prefere `websnap(url)` car data.gouv.fr ne contient pas de donnees en temps reel."
+        "- Si l'utilisateur demande des donnees temps reel (qualite de l'air, meteo, trafic, etc.), prefere `websnap(url)` car data.gouv.fr ne contient pas de donnees en temps reel.\n\n"
+        "Format des reponses avec recherche web :\n"
+        "Quand tu utilises des resultats de recherche web, structure ta reponse ainsi :\n"
+        "1. Un **tableau synthetique** (Aspect | Situation | Sources) si le sujet s'y prete\n"
+        "2. Des **citations numerotees** renvoyant aux sources (ex: [Source 1], [Source 2])\n"
+        "3. Un **resume** en bullet points des points cles\n"
+        "4. Une section **Sources** en fin de reponse avec les titres et URLs\n"
+        "Cela permet a l'utilisateur de verifier les informations et d'approfondir."
     ),
 }
 
