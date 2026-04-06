@@ -276,37 +276,37 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 
 ## 11. Grist — Données collaboratives
 
-> **MCP a activer** : `Grist (mcp)` dans le sélecteur d'outils
-> Nécessite le service `grist-mcp` lancé (docker compose up -d dans owuitools-gristmcp)
+> **Tools a activer** : `grist` dans le selecteur d'outils
+> Le wrapper tool appelle l'API REST Grist directement (contournement bug #15 MCP)
 
 ### T11.1 — Lister les organisations
 - **Modele** : gpt-oss-120b
 - **Prompt** : `Liste mes organisations Grist`
-- **Attendu** : Le MCP Grist appelle `list_organizations`, retourne les orgs disponibles
+- **Attendu** : Le tool `grist_navigate()` retourne les 3 orgs (Personal, SDID, templates) dans un tableau HTML
 - [ ] OK
 
-### T11.2 — Lister les documents
+### T11.2 — Explorer une organisation
 - **Modele** : gpt-oss-120b
-- **Prompt** : `Quels documents sont disponibles dans mon espace Grist ?`
-- **Attendu** : Le MCP appelle `list_workspaces` puis `list_documents`, retourne les docs
+- **Prompt** : `Quels documents sont disponibles dans l'organisation SDID sur Grist ?`
+- **Attendu** : Le tool `grist_navigate(org_name="SDID")` retourne les workspaces et documents (Gestion PI SDID, etc.)
 - [ ] OK
 
 ### T11.3 — Lire une table
 - **Modele** : gpt-oss-120b
-- **Prompt** : `Montre-moi le contenu de la table Epics dans le document peRx9ZSrNDhm3c3Jh9GKS2`
-- **Attendu** : Le MCP appelle `list_records`, retourne les lignes de la table
+- **Prompt** : `Montre-moi le contenu de la table Epics dans le document qXWzdtyGgNh2T64Ti1SQfc`
+- **Attendu** : Le tool `grist_read_table("qXWzdtyGgNh2T64Ti1SQfc", "Epics")` affiche les donnees dans un tableau HTML
 - [ ] OK
 
 ### T11.4 — Requete SQL
 - **Modele** : gpt-oss-120b
-- **Prompt** : `Execute une requete SQL sur le document peRx9ZSrNDhm3c3Jh9GKS2 : SELECT * FROM Epics LIMIT 5`
-- **Attendu** : Le MCP appelle `execute_sql_query`, retourne les résultats
+- **Prompt** : `Execute une requete SQL sur le document qXWzdtyGgNh2T64Ti1SQfc : SELECT * FROM Epics LIMIT 5`
+- **Attendu** : Le tool `grist_query("qXWzdtyGgNh2T64Ti1SQfc", "SELECT * FROM Epics LIMIT 5")` retourne les resultats en tableau HTML
 - [ ] OK
 
 ### T11.5 — Export CSV
 - **Modele** : gpt-oss-120b
-- **Prompt** : `Exporte la table Epics du document peRx9ZSrNDhm3c3Jh9GKS2 en CSV`
-- **Attendu** : Le MCP appelle `download_table_csv`, retourne le CSV
+- **Prompt** : `Exporte la table Epics du document qXWzdtyGgNh2T64Ti1SQfc en CSV`
+- **Attendu** : Le tool `grist_export("qXWzdtyGgNh2T64Ti1SQfc", "Epics")` retourne le CSV avec apercu
 - [ ] OK
 
 ---

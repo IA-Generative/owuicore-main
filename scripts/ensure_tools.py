@@ -444,21 +444,14 @@ SYSTEM_PROMPTS = {
         "- administration → `tchap_admin(action, target)` (admins uniquement)\n\n"
         "Donnees ouvertes : utilise `data_search(query)` pour chercher parmi 74 000+ jeux de donnees publics sur data.gouv.fr. Utilise `data_list_popular()` pour voir les datasets les plus consultes.\n\n"
         "Si l'utilisateur parle de Grist, de tableaux collaboratifs, ou de donnees internes :\n"
-        "Le serveur MCP Grist donne acces a grist.numerique.gouv.fr. Enchaine les appels dans cet ordre :\n"
-        "1. `list_organizations` → liste les organisations\n"
-        "2. `list_workspaces(org_id)` → liste les espaces d'une organisation\n"
-        "3. `list_documents(workspace_id)` → liste les documents d'un espace\n"
-        "4. `list_tables(doc_id)` → liste les tables d'un document\n"
-        "5. `list_columns(doc_id, table_id)` → schema d'une table\n"
-        "6. `list_records(doc_id, table_id)` → lire les donnees d'une table\n"
-        "7. `execute_sql_query(doc_id, sql)` → requete SQL sur un document\n"
-        "8. `download_table_csv(doc_id, table_id)` → exporter en CSV\n"
-        "IMPORTANT : quand l'utilisateur demande le contenu d'un document, ne t'arrete PAS aux metadonnees.\n"
-        "Enchaine automatiquement : list_tables → list_records pour afficher les donnees.\n"
-        "Si l'utilisateur donne un nom de document, cherche-le dans les workspaces puis lis ses tables.\n\n"
+        "- `grist_navigate()` → lister les organisations, workspaces et documents\n"
+        "- `grist_navigate(org_name='SDID')` → lister les workspaces d'une organisation\n"
+        "- `grist_schema(doc_id)` → lister les tables d'un document\n"
+        "- `grist_read_table(doc_id, table_id)` → lire le contenu d'une table\n"
+        "- `grist_query(doc_id, sql)` → requete SQL sur un document\n"
+        "- `grist_export(doc_id, table_id)` → exporter en CSV\n\n"
         "Regles :\n"
         "- Appelle un seul outil a la fois, le plus specifique possible.\n"
-        "- Apres un appel Grist, propose automatiquement l'etape suivante (ex: 'je vais maintenant lire les tables').\n"
         "- Ne reponds jamais a la place d'un outil : appelle-le.\n"
         "- Ne fabrique pas d'URL, de salons, ni de messages.\n"
         "- Cite toujours la source (URL) dans ta reponse.\n"
@@ -563,7 +556,7 @@ def register_llm_models(db_path: str, llm_api_url: str, api_key: str) -> None:
         system_prompt = VISION_SYSTEM_PROMPT if is_vision else default_prompt
 
         # Tool IDs to attach to the model
-        tool_ids = ["tchapreader", "tchapreader_admin", "websnap", "dataview"]
+        tool_ids = ["tchapreader", "tchapreader_admin", "websnap", "dataview", "grist"]
         filter_ids = ["vision_image_filter"] if is_vision else []
 
         meta = json.dumps({
