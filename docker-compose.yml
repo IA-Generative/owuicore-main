@@ -59,6 +59,8 @@ services:
       # --- RAG: document extraction via Tika ---
       CONTENT_EXTRACTION_ENGINE: tika
       TIKA_SERVER_URL: http://tika:9998
+      # --- MCP Tool Servers ---
+      TOOL_SERVER_CONNECTIONS: '[{"url":"https://mcp.data.gouv.fr/mcp","name":"Open Data (mcp)","description":"Recherche parmi 74000+ jeux de données publics"},{"url":"http://grist-mcp:8000/mcp","name":"Grist (mcp)","description":"Accès aux données Grist"}]'
     volumes:
       - openwebui-data:/app/backend/data
     depends_on:
