@@ -12,7 +12,7 @@
 
 ---
 
-## 2. Embeddings Scaleway — rate limit 429
+## 2. Embeddings Scaleway — rate limit 429 (WORKAROUND)
 
 **Symptome** : Upload de fichiers echoue avec `Unexpected token '<'` ou `429 Too Many Requests`. Le parsing JSON echoue car Scaleway retourne une page HTML d'erreur.
 
@@ -40,7 +40,7 @@ RAG_EMBEDDING_BATCH_SIZE: "4"
 
 ---
 
-## 3. DB SQLite readonly apres kubectl cp
+## 3. DB SQLite readonly apres kubectl cp (K8S ONLY)
 
 **Symptome** : Les chats retournent 400, les logs affichent `attempt to write a readonly database`.
 
@@ -60,7 +60,7 @@ kubectl delete pod -n miraiku -l app=openwebui  # restart necessaire
 
 ---
 
-## 4. DIRECT_TOOL_CALLING absent — tools silencieusement ignores
+## 4. DIRECT_TOOL_CALLING absent — tools silencieusement ignores (RESOLU)
 
 **Symptome** : Les tools sont enregistres, le system prompt est correct, mais le LLM ne les appelle jamais. Repond en texte simple.
 
@@ -83,7 +83,7 @@ kubectl exec -n miraiku deploy/openwebui -- printenv DIRECT_TOOL_CALLING
 
 ---
 
-## 5. Tool valves pointent vers localhost (k8s)
+## 5. Tool valves pointent vers localhost (K8S ONLY)
 
 **Symptome** : Les tools sont appeles par le LLM mais retournent des erreurs de connexion.
 
@@ -119,34 +119,17 @@ for row in db.execute('SELECT id, valves FROM tool').fetchall():
 
 ---
 
-## 7. Fichiers fantomes dans les nouvelles conversations
+## 7. Fichiers fantomes dans les nouvelles conversations (RESOLU)
 
 **Symptome** : Les fichiers uploades dans les conversations precedentes apparaissent dans les nouvelles conversations.
 
-**Cause racine** : OWUI stocke les fichiers dans la table `file` et les lie aux chats via `chat_file`. Les fichiers persistent entre les conversations. Peut aussi venir du cache du navigateur ou du drag & drop macOS (qui envoie tous les fichiers selectionnes dans le Finder).
+**Cause racine** : Le drag & drop macOS envoie tous les fichiers visibles dans la fenetre Finder, pas seulement celui selectionne. Ce n'etait pas un bug OWUI.
 
-**Workaround** :
-- Utiliser le bouton "+" dans l'UI au lieu du drag & drop
-- Nettoyer les fichiers :
-```bash
-docker exec owuicore-openwebui-1 python3 -c "
-import sqlite3
-db = sqlite3.connect('/app/backend/data/webui.db')
-db.execute('DELETE FROM chat_file')
-db.execute('DELETE FROM file')
-db.commit()
-"
-```
-- En dernier recours : supprimer le volume et repartir a zero :
-```bash
-docker compose down
-docker volume rm owui-socle-openwebui-data
-docker compose up -d
-```
+**Fix** : Utiliser le bouton "+" (trombone) dans l'UI au lieu du drag & drop depuis le Finder.
 
 ---
 
-## 8. data_schema 500 — numpy.int64 serialization
+## 8. data_schema 500 — numpy.int64 serialization (RESOLU)
 
 **Symptome** : `data_schema` retourne une erreur 500 Internal Server Error.
 
@@ -156,7 +139,7 @@ docker compose up -d
 
 ---
 
-## 9. data_query crash sur colonnes non-numeriques
+## 9. data_query crash sur colonnes non-numeriques (RESOLU)
 
 **Symptome** : `data_query` avec une question de tri alphabetique crashe avec `TypeError: cannot use method 'nlargest' with dtype str`.
 
@@ -166,7 +149,7 @@ docker compose up -d
 
 ---
 
-## 10. gpt-oss-120b reasoning fuit dans l'affichage apres tool call
+## 10. gpt-oss-120b reasoning fuit dans l'affichage apres tool call (WORKAROUND)
 
 **Symptome** : Apres un tool call (websnap, data_query, etc.), le LLM affiche son raisonnement brut en anglais ("The user asks...") au lieu de la reponse synthetisee. Le contenu est vide ou contient le texte du reasoning.
 
@@ -196,7 +179,7 @@ On perd l'affichage "Reflexion pendant X secondes" (cosmetique) mais le contenu 
 
 ---
 
-## 11. Filter dataview_auto_preview — fichier non detecte (401)
+## 11. Filter dataview_auto_preview — fichier non detecte (401) (RESOLU)
 
 **Symptome** : Le filter detecte le fichier (`detected tabular file xxx.xlsx`) mais echoue avec `could not fetch file (401)`.
 
@@ -208,7 +191,7 @@ On perd l'affichage "Reflexion pendant X secondes" (cosmetique) mais le contenu 
 
 ---
 
-## 12. Upload d'image crashe avec "Unexpected token <"
+## 12. Upload d'image crashe avec "Unexpected token <" (RESOLU)
 
 **Symptome** : L'upload d'une image (jpeg, png) echoue immediatement avec `Unexpected token '<', "<html> <h"... is not valid JSON`.
 
@@ -228,7 +211,7 @@ open('/app/backend/open_webui/routers/files.py','w').write(c.replace(old, new))
 
 ---
 
-## 13. Vision filter "returned no results" — image non detectee
+## 13. Vision filter "returned no results" — image non detectee (RESOLU)
 
 **Symptome** : Le filter vision s'execute (status "Analyzing 1 image(s)") mais retourne "no results" immediatement.
 
