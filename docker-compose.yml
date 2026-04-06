@@ -35,9 +35,11 @@ services:
       ENABLE_WEB_SEARCH: "false"
       WEB_SEARCH_ENGINE: ${WEB_SEARCH_ENGINE:-searxng}
       SEARXNG_QUERY_URL: ${SEARXNG_QUERY_URL:-http://searxng:8080/search}
-      # Image generation disabled as OWUI auto-feature (causes max_tokens overflow)
-      # Available on demand via the image-gen service directly
-      ENABLE_IMAGE_GENERATION: "false"
+      ENABLE_IMAGE_GENERATION: "true"
+      IMAGE_GENERATION_ENGINE: openai
+      IMAGES_OPENAI_API_BASE_URL: http://image-gen:9100/v1
+      IMAGES_OPENAI_API_KEY: ${HF_TOKEN:-not-used}
+      IMAGE_GENERATION_MODEL: ${HF_IMAGE_MODEL:-black-forest-labs/FLUX.1-schnell}
       ENABLE_API_KEYS: "true"
       DEFAULT_MODELS: ${DEFAULT_MODEL:-mistral-small-3.2-24b-instruct-2506}
       # Task model for function calling / title generation
