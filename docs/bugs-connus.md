@@ -193,7 +193,17 @@ On perd l'affichage "Reflexion pendant X secondes" (cosmetique) mais le contenu 
 
 ---
 
-## 12. Upload d'image crashe avec "Unexpected token <" (RESOLU)
+## 12. Tchapreader UserValves has no attribute 'get' (RESOLU)
+
+**Symptome** : `tchap_connect` retourne `'UserValves' object has no attribute 'get'`.
+
+**Cause racine** : OWUI passe les UserValves comme un objet Pydantic, pas un dict. Le code faisait `user.get("valves", {}).get("tchap_email")` qui echoue car l'objet Pydantic n'a pas de methode `.get()`.
+
+**Fix applique** : `_get_user_valves()` convertit l'objet Pydantic en dict via `model_dump()` avant d'acceder aux valeurs.
+
+---
+
+## 13. Upload d'image crashe avec "Unexpected token <" (RESOLU)
 
 **Symptome** : L'upload d'une image (jpeg, png) echoue immediatement avec `Unexpected token '<', "<html> <h"... is not valid JSON`.
 
