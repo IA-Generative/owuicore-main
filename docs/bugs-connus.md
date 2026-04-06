@@ -104,28 +104,18 @@ for row in db.execute('SELECT id, valves FROM tool').fetchall():
 
 ---
 
-## 6. MCP server data.gouv.fr — NoneType crash (PARTIELLEMENT RESOLU)
+## 6. MCP server data.gouv.fr — NoneType crash (RESOLU)
 
-**Symptome** : Le MCP `data-gouv-fr` est active, le LLM l'appelle, mais ca crashe avec `NoneType is not iterable`.
+**Symptome** : Le MCP `data-gouv-fr` etait active, le LLM l'appelait, crash `NoneType is not iterable`.
 
-**Cause racine trouvee** : Ce n'etait PAS un bug MCP. C'etait notre filter `dataview_auto_preview` qui crashait car OWUI passe `files: null` (pas `[]`) dans `body.metadata`. Le crash dans `_find_all_tabular_files` se produisait a chaque requete chat, **avant** que le MCP soit appele.
-
-L'erreur etait masquee par un `log.debug` dans `main.py` ligne 1816 — invisible en log level INFO. Le patch `log.debug` → `log.exception` a revele le vrai traceback.
+**Cause racine** : Notre filter `dataview_auto_preview` crashait car OWUI passe `files: null` (pas `[]`) dans `body.metadata`. Le crash se produisait a chaque requete chat, **avant** que le MCP soit appele. L'erreur etait masquee par `log.debug` dans `main.py`.
 
 **Fix applique** : `.get("files") or []` au lieu de `.get("files", [])` dans le filter.
 
-**Etat actuel** : MCP desactive dans `ensure_tools.py`, remplace par le tool `data_search` (v1.4.0) qui utilise l'API REST de data.gouv.fr :
-- `data_search(query, organization, tag, page)` — recherche avec filtres et pagination
-- `data_list_popular(theme, page)` — datasets les plus consultes par theme
-
-**Prochaine etape** : Le MCP officiel (https://github.com/datagouv/datagouv-mcp) est plus riche que notre tool :
-- 9 fonctions vs 5 (search, list_resources, query_resource_data, get_metrics, etc.)
-- Pagination, filtrage et tri natifs cote serveur
-- Acces direct aux donnees sans telecharger le fichier entier
-
-Maintenant que le crash du filter est corrige, le MCP pourrait fonctionner a nouveau.
-A tester : reactiver le MCP + garder nos tools pour l'upload/preview de fichiers locaux.
-Le MCP gererait la recherche/exploration, nos tools gereraient les fichiers uploades.
+**Etat actuel** : MCP reactived ("Open Data (mcp)") + nos tools REST (`data_search`, `data_list_popular`) cohabitent :
+- MCP data.gouv.fr : 9 fonctions natives (search, list_resources, query_resource_data, etc.)
+- Nos tools REST : data_search (filtres org/tag, pagination), data_list_popular, data_preview, data_schema, data_query
+- Les deux approches se completent : MCP pour l'exploration, nos tools pour l'upload/preview de fichiers locaux
 
 ---
 
