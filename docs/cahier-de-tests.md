@@ -2,6 +2,11 @@
 
 Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a utiliser et le prompt a envoyer. Cocher chaque test une fois valide.
 
+### Prerequis generaux
+- **Activer les tools** : Avant chaque test utilisant des tools, cliquer sur l'icone outils (engrenage) en bas du chat et activer les tools necessaires (dataview, websnap, tchapreader, etc.). Les tools ne sont PAS actives par defaut.
+- **Nouvelle conversation** : Pour les tests pipeline (GraphRAG, ANEF) ou apres un upload de fichier, toujours ouvrir une **nouvelle conversation** pour eviter la pollution du contexte RAG.
+- **Modele** : Sauf indication contraire, utiliser `gpt-oss-120b` (meilleur en tool calling).
+
 ---
 
 ## 1. Socle — Connexion et modele par defaut
@@ -43,6 +48,8 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 
 ## 3. Websnap — Extraction web
 
+> **Tools a activer** : `websnap`
+
 ### T3.1 — Extraction de page
 - **Modele** : gpt-oss-120b
 - **Prompt** : `Extrais le contenu de https://www.service-public.fr/particuliers/vosdroits/N19804`
@@ -82,6 +89,9 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 ---
 
 ## 4. Dataview — Donnees tabulaires
+
+> **Tools a activer** : `dataview`
+> Pour les tests upload (T4.4), utiliser le bouton "+" et non le drag & drop.
 
 ### T4.1 — Apercu de fichier CSV
 - **Modele** : gpt-oss-120b
@@ -172,6 +182,10 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 
 ## 7. Vision / VLM (pixtral-12b)
 
+> **Tools a activer** : `websnap` (le filter vision est global, pas besoin de l'activer)
+> Utiliser le bouton "+" pour uploader les images (pas le drag & drop).
+> Nouvelle conversation pour chaque test.
+
 ### T7.1 — Analyse d'image avec texte
 - **Modele** : pixtral-12b-2409
 - **Action** : Uploader une photo d'un document imprime (facture, courrier, formulaire)
@@ -261,6 +275,9 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 ---
 
 ## 11. Tchap — Messagerie (si configure)
+
+> **Tools a activer** : `tchapreader`
+> Configurer les credentials Tchap dans les parametres utilisateur du tool (icone engrenage).
 
 ### T11.1 — Connexion
 - **Modele** : gpt-oss-120b
