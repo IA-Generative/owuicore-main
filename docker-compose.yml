@@ -9,6 +9,13 @@ services:
       - |
         # Patch MCP label: use connection name instead of generic "MCP Tool Server"
         sed -i "s/'name': server.get('info', {}).get('name', 'MCP Tool Server')/'name': server.get('info', {}).get('name', server.get('name', 'MCP Tool Server'))/" /app/backend/open_webui/routers/tools.py 2>/dev/null || true
+        # Patch image upload: skip processing for images (vision filter handles them)
+        python3 -c "
+        c = open('/app/backend/open_webui/routers/files.py').read()
+        old = \"raise Exception(f'File type {content_type} is not supported for processing')\"
+        new = \"__import__('logging').getLogger(__name__).info(f'Skip processing {content_type}')\"
+        open('/app/backend/open_webui/routers/files.py','w').write(c.replace(old, new))
+        " 2>/dev/null || true
         # Start OWUI
         exec bash /app/backend/start.sh
     env_file:
