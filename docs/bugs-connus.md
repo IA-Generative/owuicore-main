@@ -119,13 +119,15 @@ for row in db.execute('SELECT id, valves FROM tool').fetchall():
 
 ---
 
-## 7. Fichiers fantomes dans les nouvelles conversations (RESOLU)
+## 7. Contexte RAG pollue entre conversations (CONNU)
 
-**Symptome** : Les fichiers uploades dans les conversations precedentes apparaissent dans les nouvelles conversations.
+**Symptome** : Les fichiers uploades dans les conversations precedentes influencent les reponses du LLM dans les nouvelles conversations. Par exemple, un CV uploade dans un chat precedent apparait dans les resultats GraphRAG d'un autre chat.
 
-**Cause racine** : Le drag & drop macOS envoie tous les fichiers visibles dans la fenetre Finder, pas seulement celui selectionne. Ce n'etait pas un bug OWUI.
+**Cause racine** : Deux phenomenes :
+1. Le drag & drop macOS peut envoyer plusieurs fichiers involontairement (utiliser le bouton "+" a la place)
+2. Le RAG OWUI indexe les fichiers uploades et les injecte dans le contexte du LLM via les embeddings. Si le meme utilisateur a uploade des fichiers dans d'autres conversations, le RAG peut les retrouver par similarite.
 
-**Fix** : Utiliser le bouton "+" (trombone) dans l'UI au lieu du drag & drop depuis le Finder.
+**Workaround** : Pour les tests pipeline (GraphRAG, ANEF), toujours ouvrir une **nouvelle conversation vierge** sans fichiers uploades. Cela evite la pollution du contexte RAG.
 
 ---
 

@@ -246,14 +246,16 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 ### T10.1 — Recherche locale
 - **Modele** : GraphRAG Local
 - **Prompt** : `Quels sont les principaux acteurs mentionnes dans le corpus ?`
-- **Attendu** : Liste d'acteurs avec citations et sources
-- **Note** : Necessite un corpus indexe dans le bridge
+- **Attendu** : Liste d'acteurs avec citations et sources du corpus GraphRAG (guerres medievales, etc.)
+- **Prerequis** : Nouvelle conversation (pas de fichiers uploades), corpus indexe dans le bridge
+- **Attention** : Si des fichiers ont ete uploades dans des conversations precedentes, le RAG OWUI injecte leur contenu et le LLM melange les sources. Toujours tester dans une conversation vierge.
 - [ ] OK
 
 ### T10.2 — Synthese globale
 - **Modele** : GraphRAG Global
 - **Prompt** : `Quels sont les themes dominants du corpus ?`
 - **Attendu** : Synthese thematique transversale
+- **Prerequis** : Nouvelle conversation sans fichiers uploades
 - [ ] OK
 
 ---
