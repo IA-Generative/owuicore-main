@@ -202,6 +202,20 @@ else
   fail "data_search in dataview" "missing — 'lister open data' prompt will fail"
 fi
 
+# 2d. reasoning_tags must be disabled for gpt-oss-120b (bug OWUI v0.8.12)
+reasoning_off=$(owui_exec python3 -c "
+import sqlite3, json
+db = sqlite3.connect('/app/backend/data/webui.db')
+m = db.execute('SELECT params FROM model WHERE id=\"gpt-oss-120b\"').fetchone()
+p = json.loads(m[0]) if m and m[0] else {}
+print('ok' if p.get('reasoning_tags') is False else 'missing')
+" || echo "fail")
+if [[ "$reasoning_off" == "ok" ]]; then
+  pass "reasoning_tags disabled for gpt-oss-120b"
+else
+  fail "reasoning_tags" "not disabled — reasoning text will leak into tool call responses"
+fi
+
 # 2d. DB must be writable (kubectl cp sets uid 501 → readonly for OWUI process)
 db_writable=$(owui_exec python3 -c "
 import sqlite3

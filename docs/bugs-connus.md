@@ -196,7 +196,37 @@ docker compose up -d
 
 ---
 
-## 10. Filter dataview_auto_preview — fichier non detecte (401)
+## 10. gpt-oss-120b reasoning fuit dans l'affichage apres tool call
+
+**Symptome** : Apres un tool call (websnap, data_query, etc.), le LLM affiche son raisonnement brut en anglais ("The user asks...") au lieu de la reponse synthetisee. Le contenu est vide ou contient le texte du reasoning.
+
+**Cause racine** : gpt-oss-120b retourne un champ `reasoning` separe dans la reponse API (pas des tags inline `<think>`). OWUI v0.8.12 gere mal ce format apres un tool call — il affiche le reasoning comme du contenu.
+
+**Comment diagnostiquer** :
+```bash
+# Tester directement l'API Scaleway
+curl -s -X POST "${SCW_URL}/chat/completions" \
+  -H "Authorization: Bearer $SCW_KEY" \
+  -d '{"model":"gpt-oss-120b","messages":[{"role":"user","content":"test"}],"stream":false}' | \
+  jq '.choices[0].message | {content: .content[:100], reasoning: .reasoning[:100]}'
+# Si les deux sont presents → le modele retourne du reasoning separe
+```
+
+**Workaround applique** : Desactiver la detection reasoning dans les params du modele :
+```python
+# Dans ensure_tools.py ou via DB directe
+params["reasoning_tags"] = False
+```
+On perd l'affichage "Reflexion pendant X secondes" (cosmetique) mais le contenu s'affiche correctement.
+
+**Alternatives** :
+- Utiliser un modele sans reasoning (mistral-small) — moins bon en tool calling
+- Attendre OWUI > 0.8.12 qui gere le champ `reasoning` separe
+- Passer à un modele qui utilise des tags inline (`<think>`) au lieu d'un champ separe
+
+---
+
+## 11. Filter dataview_auto_preview — fichier non detecte (401)
 
 **Symptome** : Le filter detecte le fichier (`detected tabular file xxx.xlsx`) mais echoue avec `could not fetch file (401)`.
 

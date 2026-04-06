@@ -140,9 +140,22 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 
 ### T4.10 — Donnees temps reel (fallback websnap)
 - **Modele** : gpt-oss-120b
-- **Prompt** : `Quelle est la qualite de l'air a Paris en ce moment ? Utilise airparif`
-- **Attendu** : Le modele detecte que data_search ne retourne rien de pertinent (pas de donnees temps reel sur data.gouv.fr) et utilise websnap("https://www.airparif.asso.fr/") pour extraire les indices ATMO actuels depuis le site web
-- **Note** : Teste la capacite du LLM a choisir le bon tool quand data_search echoue. Actuellement KO — le LLM suggere le site mais n'appelle pas websnap spontanement.
+- **Prompt** : `Va sur le site https://www.airparif.asso.fr/ et dis-moi quelle est la qualite de l'air a Paris en ce moment`
+- **Attendu** : websnap appele sur airparif, contenu extrait et synthetise par le LLM
+- **Note** : Le site airparif est JS-heavy, le contenu temps reel peut ne pas etre extrait en mode HTTP. Le mode browser (Playwright) serait necessaire pour les donnees dynamiques.
+- [x] OK (partiel — websnap appele, contenu statique extrait)
+
+### T4.11 — Reasoning ne fuit pas apres tool call
+- **Modele** : gpt-oss-120b
+- **Prompt** : `Extrais le contenu de https://example.com`
+- **Attendu** : Le LLM appelle websnap, puis affiche une synthese en francais du contenu. Pas de texte de raisonnement brut ("The user asks...", "We need to call...")
+- **Note** : Necessite `reasoning_tags: false` dans les params du modele (bug OWUI v0.8.12 + gpt-oss-120b reasoning field)
+- [x] OK
+
+### T4.12 — Resultats recherche en HTML (iframe scrollable)
+- **Modele** : gpt-oss-120b
+- **Prompt** : `Quels sont les datasets open data les plus consultes sur le transport ?`
+- **Attendu** : Tableau HTML avec les datasets (titre, organisation, formats, liens cliquables) affiche dans un iframe + synthese du LLM
 - [ ] OK
 
 ---

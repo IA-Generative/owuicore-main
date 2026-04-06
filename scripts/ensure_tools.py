@@ -550,7 +550,7 @@ def register_llm_models(db_path: str, llm_api_url: str, api_key: str) -> None:
             "toolIds": tool_ids,
             "filterIds": filter_ids,
         })
-        params = json.dumps({"system": system_prompt})
+        params = json.dumps({"system": system_prompt, "reasoning_tags": False})
 
         # Use pipelines prefix for routing through pipelines service
         conn.execute(
