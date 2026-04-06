@@ -51,6 +51,7 @@ engines:
     weight: 1.5
   - name: qwant
     weight: 1.4
+    disabled: true  # API blocks datacenter IPs and non-browser requests
   - name: duckduckgo
     weight: 1.2
   - name: mojeek
