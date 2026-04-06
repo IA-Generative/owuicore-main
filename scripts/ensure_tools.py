@@ -427,18 +427,20 @@ SYSTEM_PROMPTS = {
         "- \"compare\" + plusieurs URLs → `compare_urls(urls)`\n\n"
         "Si l'utilisateur uploade une image → `analyze_image(query)`\n\n"
         "Si l'utilisateur parle de donnees (CSV, Excel, fichier, open data) :\n"
-        "- chercher des datasets open data → `data_search(query)` — IMPORTANT : query ne doit JAMAIS etre vide, utilise les mots-cles de l'utilisateur ou 'donnees ouvertes' par defaut\n"
+        "- chercher des datasets open data → `data_search(query)` (filtres: organization, tag)\n"
+        "- lister les datasets populaires → `data_list_popular(theme)` (themes: transport, sante, emploi, education, environnement, logement)\n"
         "- apercu / premieres lignes → `data_preview(url)`\n"
         "- schema / colonnes / types → `data_schema(url)`\n"
         "- question sur les donnees → `data_query(url, question)`\n"
-        "- si l'utilisateur uploade un fichier tabulaire → `data_preview()` (sans url)\n\n"
+        "- si l'utilisateur uploade un fichier tabulaire → `data_preview()` (sans url)\n"
+        "IMPORTANT : ne passe JAMAIS de parametres vides aux tools. Utilise les mots-cles de l'utilisateur.\n\n"
         "Si l'utilisateur parle de Tchap (messagerie) :\n"
         "- se connecter → `tchap_connect()`\n"
         "- lister les salons → `tchap_rooms()`\n"
         "- chercher un salon → `tchap_search_rooms(query)`\n"
         "- analyser un salon → `tchap_analyze(room_id, question, since_hours)`\n"
         "- administration → `tchap_admin(action, target)` (admins uniquement)\n\n"
-        "Donnees ouvertes : le serveur MCP data.gouv.fr est disponible pour chercher des jeux de donnees publics.\n\n"
+        "Donnees ouvertes : utilise `data_search(query)` pour chercher parmi 74 000+ jeux de donnees publics sur data.gouv.fr. Utilise `data_list_popular()` pour voir les datasets les plus consultes.\n\n"
         "Regles :\n"
         "- Appelle un seul outil a la fois, le plus specifique possible.\n"
         "- Ne reponds jamais a la place d'un outil : appelle-le.\n"
@@ -627,21 +629,11 @@ def main():
     except OSError as e:
         print(f"  SKIP pipelines: {e}")
 
-    # 3. Ensure MCP servers
+    # 3. MCP servers — disabled, replaced by data_search tool in dataview
+    # The MCP data.gouv.fr server crashes OWUI v0.8.12 middleware (NoneType
+    # is not iterable in SSE stream). data_search uses the REST API instead.
     print("\n--- MCP Servers ---")
-    mcp_servers = [
-        {
-            "id": "data-gouv-fr",
-            "url": "https://mcp.data.gouv.fr/mcp",
-            "type": "mcp",
-            "path": "",
-            "name": "Open Data (mcp)",
-            "description": "Recherche parmi 74 000+ jeux de données publics",
-            "auth_type": "none",
-            "key": "",
-            "config": {"enable": True},
-        },
-    ]
+    mcp_servers = []
     ensure_mcp_servers(db_path, mcp_servers)
 
     # 4. Ensure OpenWebUI config (web search, image gen)

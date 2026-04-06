@@ -124,13 +124,16 @@ for row in db.execute('SELECT id, valves FROM tool').fetchall():
 
 ---
 
-## 6. MCP server data.gouv.fr — NoneType crash
+## 6. MCP server data.gouv.fr — NoneType crash (RESOLU)
 
-**Symptome** : Le MCP `data-gouv-fr` est active, le LLM l'appelle, mais ca crashe avec `NoneType`.
+**Symptome** : Le MCP `data-gouv-fr` est active, le LLM l'appelle, mais ca crashe avec `NoneType is not iterable`.
 
-**Cause racine** : Le serveur MCP `https://mcp.data.gouv.fr/mcp` ne retourne pas toujours un format compatible avec le parsing OWUI v0.8.12.
+**Cause racine** : Le serveur MCP `https://mcp.data.gouv.fr/mcp` retourne un format incompatible avec le parsing SSE de OWUI v0.8.12. L'erreur est invisible cote serveur (HTTP 200) car elle se produit dans le stream SSE. Issue open-webui [#13125](https://github.com/open-webui/open-webui/issues/13125).
 
-**Workaround applique** : Desactive le MCP data.gouv.fr. Le tool `data_search` fait la meme chose via l'API REST de data.gouv.fr (plus fiable).
+**Resolution** : MCP desactive dans `ensure_tools.py`. Remplace par le tool `data_search` (v1.4.0) qui utilise l'API REST de data.gouv.fr directement :
+- `data_search(query, organization, tag)` — recherche avec filtres
+- `data_list_popular(theme)` — datasets les plus consultes par theme
+- Memes fonctionnalites que le MCP, sans le protocole intermediaire
 
 ---
 

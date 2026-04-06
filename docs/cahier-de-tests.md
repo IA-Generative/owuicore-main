@@ -111,7 +111,7 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 ### T4.5 — Recherche open data (prompt generique)
 - **Modele** : gpt-oss-120b
 - **Prompt** : `Peux-tu lister la liste des donnees open data ?`
-- **Attendu** : Tool data_search appele, retourne des datasets depuis data.gouv.fr
+- **Attendu** : Tool data_search ou data_list_popular appele, retourne des datasets depuis data.gouv.fr
 - [ ] OK
 
 ### T4.6 — Recherche open data thematique
@@ -120,7 +120,19 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 - **Attendu** : data_search("qualite air Ile-de-France"), liste de datasets avec URLs
 - [ ] OK
 
-### T4.7 — Chaine recherche + apercu
+### T4.7 — Datasets populaires par theme
+- **Modele** : gpt-oss-120b
+- **Prompt** : `Quels sont les datasets open data les plus consultes sur le transport ?`
+- **Attendu** : data_list_popular(theme="transport"), top 10 tries par vues
+- [ ] OK
+
+### T4.8 — Recherche par organisation
+- **Modele** : gpt-oss-120b
+- **Prompt** : `Quelles donnees la SNCF publie-t-elle en open data ?`
+- **Attendu** : data_search(organization="SNCF"), datasets filtres par organisation
+- [ ] OK
+
+### T4.9 — Chaine recherche + apercu
 - **Modele** : gpt-oss-120b
 - **Prompt** : `Cherche sur data.gouv.fr un fichier CSV sur les prenoms donnes en France, puis donne-moi un apercu des donnees`
 - **Attendu** : Le modele enchaine data_search puis data_preview
