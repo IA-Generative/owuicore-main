@@ -27,6 +27,16 @@
 - Reste à tester en conditions réelles avec des salons actifs
 - Améliorer la pseudonymisation dans l'iframe HTML
 
+### Agrégateur MCP (résoudre le doublon d'ID)
+- OWUI v0.8.12 génère le même ID `server:mcp:None` pour plusieurs MCPs
+- Solution : créer un service agrégateur MCP unique qui proxifie vers :
+  - `https://mcp.data.gouv.fr/mcp` (Open Data)
+  - `http://grist-mcp:8000/mcp` (Grist)
+  - Autres MCPs futurs
+- L'agrégateur expose un seul endpoint MCP avec tous les tools combinés
+- OWUI ne voit qu'un seul MCP → pas de conflit d'ID
+- Alternative : attendre OWUI > 0.8.12
+
 ### Vision filter — images volumineuses
 - Le filter v3.0 fonctionne en isolation mais peut timeout sur de grosses images (>1Mo)
 - Ajouter un redimensionnement automatique avant l'envoi à pixtral

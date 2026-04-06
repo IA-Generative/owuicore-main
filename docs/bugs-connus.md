@@ -255,6 +255,20 @@ print('OK' if 'image_analysis' in result['messages'][-1]['content'] else 'FAIL')
 
 ---
 
+## 14. Plusieurs MCPs — doublon d'ID server:mcp:None (CONNU)
+
+**Symptome** : Quand plusieurs MCP servers sont configurés (ex: Open Data + Grist), un seul apparaît dans le sélecteur d'outils. L'API `/api/v1/tools/` montre les deux mais avec le même ID `server:mcp:None`.
+
+**Cause racine** : OWUI v0.8.12 génère l'ID du MCP tool à partir de `server.info.name` retourné lors de la connexion `initialize`. Si le serveur ne retourne pas cette info (connexion paresseuse, timeout, ou protocole incompatible), l'ID est `None`. Deux MCPs avec le même ID = un seul affiché (dédup).
+
+**Workaround possible** : Utiliser un **agrégateur MCP** — un seul service qui proxifie les requêtes vers plusieurs MCPs backend. OWUI ne voit qu'un seul MCP avec un ID unique, et l'agrégateur route vers le bon backend selon le tool appelé.
+
+**Alternative** : Attendre OWUI > 0.8.12 qui gère mieux les IDs de MCP servers multiples.
+
+**Note** : Les MCPs fonctionnent quand même — le LLM peut les appeler. C'est juste l'affichage dans le sélecteur d'outils qui est affecté. Activer le MCP visible et le LLM aura accès aux tools des deux serveurs.
+
+---
+
 # Guide de debug OWUI
 
 ## Erreurs invisibles dans les logs
