@@ -443,6 +443,9 @@ SYSTEM_PROMPTS = {
         "- analyser un salon → `tchap_analyze(room_id, question, since_hours)`\n"
         "- administration → `tchap_admin(action, target)` (admins uniquement)\n\n"
         "Donnees ouvertes : utilise `data_search(query)` pour chercher parmi 74 000+ jeux de donnees publics sur data.gouv.fr. Utilise `data_list_popular()` pour voir les datasets les plus consultes.\n\n"
+        "Si l'utilisateur parle de Grist, de tableaux collaboratifs, ou de donnees internes :\n"
+        "- Le serveur MCP Grist est disponible pour lister, consulter et modifier les documents Grist\n"
+        "- Exemples : lister les organisations, chercher un document, lire une table, executer une requete SQL\n\n"
         "Regles :\n"
         "- Appelle un seul outil a la fois, le plus specifique possible.\n"
         "- Ne reponds jamais a la place d'un outil : appelle-le.\n"
@@ -650,6 +653,17 @@ def main():
             "path": "",
             "name": "Open Data (mcp)",
             "description": "Recherche parmi 74 000+ jeux de données publics (data.gouv.fr)",
+            "auth_type": "none",
+            "key": "",
+            "config": {"enable": True},
+        },
+        {
+            "id": "grist",
+            "url": "http://grist-mcp:8000/mcp",
+            "type": "mcp",
+            "path": "",
+            "name": "Grist (mcp)",
+            "description": "Accès aux données Grist : documents, tables, records, requêtes SQL (grist.numerique.gouv.fr)",
             "auth_type": "none",
             "key": "",
             "config": {"enable": True},
