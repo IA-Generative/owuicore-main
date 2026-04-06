@@ -176,7 +176,27 @@ docker compose up -d
 
 ---
 
-## 8. Filter dataview_auto_preview — fichier non detecte (401)
+## 8. data_schema 500 — numpy.int64 serialization
+
+**Symptome** : `data_schema` retourne une erreur 500 Internal Server Error.
+
+**Cause racine** : Pydantic ne peut pas serialiser `numpy.int64` en JSON. Les colonnes numeriques retournent `min`/`max` comme `numpy.int64` au lieu de `int` Python natif.
+
+**Fix applique** : Utiliser `.item()` pour convertir les valeurs numpy en types Python natifs dans `api.py`.
+
+---
+
+## 9. data_query crash sur colonnes non-numeriques
+
+**Symptome** : `data_query` avec une question de tri alphabetique crashe avec `TypeError: cannot use method 'nlargest' with dtype str`.
+
+**Cause racine** : Les operations `top_n` et `bottom_n` utilisent `df.nlargest()` / `df.nsmallest()` qui ne fonctionnent que sur les colonnes numeriques.
+
+**Fix applique** : Fallback sur `sort_values().head()` quand la colonne n'est pas numerique.
+
+---
+
+## 10. Filter dataview_auto_preview — fichier non detecte (401)
 
 **Symptome** : Le filter detecte le fichier (`detected tabular file xxx.xlsx`) mais echoue avec `could not fetch file (401)`.
 
