@@ -101,20 +101,29 @@ Ce cahier couvre l'ensemble des fonctionnalites. Chaque test indique le modele a
 - **Attendu** : Resultat tabulaire avec les 5 lignes
 - [ ] OK
 
----
-
-## 5. MCP data.gouv.fr
-
-### T5.1 — Recherche de jeux de donnees
+### T4.4 — Upload fichier Excel
 - **Modele** : gpt-oss-120b
-- **Prompt** : `Trouve-moi des jeux de donnees sur la qualite de l'air en Ile-de-France sur data.gouv.fr`
-- **Attendu** : Liste de datasets avec titres, descriptions et liens
+- **Action** : Uploader un fichier .xlsx dans la conversation
+- **Prompt** : `Donne-moi un apercu de ce fichier`
+- **Attendu** : data_preview appele sans url, fichier uploade detecte et analyse
 - [ ] OK
 
-### T5.2 — Chaine MCP + Dataview
+### T4.5 — Recherche open data (prompt generique)
+- **Modele** : gpt-oss-120b
+- **Prompt** : `Peux-tu lister la liste des donnees open data ?`
+- **Attendu** : Tool data_search appele, retourne des datasets depuis data.gouv.fr
+- [ ] OK
+
+### T4.6 — Recherche open data thematique
+- **Modele** : gpt-oss-120b
+- **Prompt** : `Trouve-moi des jeux de donnees sur la qualite de l'air en Ile-de-France`
+- **Attendu** : data_search("qualite air Ile-de-France"), liste de datasets avec URLs
+- [ ] OK
+
+### T4.7 — Chaine recherche + apercu
 - **Modele** : gpt-oss-120b
 - **Prompt** : `Cherche sur data.gouv.fr un fichier CSV sur les prenoms donnes en France, puis donne-moi un apercu des donnees`
-- **Attendu** : Le modele utilise d'abord le MCP, puis enchaine avec data_preview
+- **Attendu** : Le modele enchaine data_search puis data_preview
 - [ ] OK
 
 ---

@@ -55,7 +55,10 @@ for manifest in k8s/base/*.yaml; do
   render_file "$manifest"
 done
 
-# Keycloak realm
+# Keycloak realm (provide defaults for legacy vars used in k8s template)
+: "${BRIDGE_HOST:=${OPENWEBUI_HOST}}"
+: "${CORPUS_MANAGER_HOST:=${OPENWEBUI_HOST}}"
+export BRIDGE_HOST CORPUS_MANAGER_HOST
 if [[ -f scripts/render_keycloak_realm.py ]]; then
   python3 scripts/render_keycloak_realm.py \
     --source keycloak/realm-openwebui.k8s.json \
@@ -95,7 +98,7 @@ fi
 
 echo "Applying deployments and services..."
 # Socle services
-for svc in openwebui keycloak pipelines searxng valkey; do
+for svc in openwebui keycloak pipelines searxng valkey tika; do
   [[ -f "k8s/rendered/deployment-${svc}.yaml" ]] && kubectl apply -f "k8s/rendered/deployment-${svc}.yaml"
   [[ -f "k8s/rendered/service-${svc}.yaml" ]] && kubectl apply -f "k8s/rendered/service-${svc}.yaml"
 done

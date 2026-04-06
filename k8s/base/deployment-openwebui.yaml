@@ -52,20 +52,55 @@ spec:
                 secretKeyRef:
                   name: owui-socle-secrets
                   key: PIPELINES_API_KEY
-            - name: ENABLE_WEB_SEARCH
+            # --- Tool calling ---
+            - name: DIRECT_TOOL_CALLING
               value: "true"
+            - name: ENABLE_SEARCH_QUERY_GENERATION
+              value: "false"
+            - name: ENABLE_API_KEYS
+              value: "true"
+            # --- Default model ---
+            - name: DEFAULT_MODELS
+              value: "gpt-oss-120b"
+            - name: TASK_MODEL_EXTERNAL
+              value: "gpt-oss-120b"
+            # --- Web search ---
+            - name: ENABLE_WEB_SEARCH
+              value: "false"
             - name: WEB_SEARCH_ENGINE
               value: "searxng"
-            - name: WEB_SEARCH_RESULT_COUNT
-              value: "5"
-            - name: WEB_SEARCH_CONCURRENT_REQUESTS
-              value: "3"
-            - name: WEB_SEARCH_TRUST_ENV
-              value: "false"
             - name: SEARXNG_QUERY_URL
               value: "http://searxng/search"
-            - name: SEARXNG_LANGUAGE
-              value: "all"
+            # --- Image generation ---
+            - name: ENABLE_IMAGE_GENERATION
+              value: "false"
+            # --- RAG: embeddings via Scaleway ---
+            - name: RAG_EMBEDDING_ENGINE
+              value: "openai"
+            - name: RAG_EMBEDDING_MODEL
+              value: "${OPENAI_EMBEDDING_MODEL}"
+            - name: RAG_OPENAI_API_BASE_URL
+              value: "${SCW_LLM_BASE_URL}"
+            - name: RAG_OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: owui-socle-secrets
+                  key: SCW_SECRET_KEY_LLM
+            - name: RAG_EMBEDDING_BATCH_SIZE
+              value: "16"
+            # --- RAG: Tika ---
+            - name: CONTENT_EXTRACTION_ENGINE
+              value: "tika"
+            - name: TIKA_SERVER_URL
+              value: "http://tika:9998"
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/sh
+                  - -c
+                  - |
+                    sed -i "s/'name': server.get('info', {}).get('name', 'MCP Tool Server')/'name': server.get('info', {}).get('name', server.get('name', 'MCP Tool Server'))/" /app/backend/open_webui/routers/tools.py 2>/dev/null || true
           ports:
             - containerPort: 8080
               name: http

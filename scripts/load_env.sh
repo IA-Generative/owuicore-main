@@ -32,7 +32,7 @@ load_dotenv_preserve_existing() {
       continue
     fi
 
-    eval "export ${key}=${value}"
+    export "${key}=${value}"
   done < "$env_file"
 }
 

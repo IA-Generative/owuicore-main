@@ -3,8 +3,9 @@
 # Smoke tests — MirAI Platform (owuicore)
 #
 # Usage:
-#   ./tests/smoke_test.sh                    # Run all tests
+#   ./tests/smoke_test.sh                    # Run all tests (docker)
 #   ./tests/smoke_test.sh --quick            # Services health only
+#   MODE=k8s OWUI_URL=https://mychat.fake-domain.name ./tests/smoke_test.sh  # K8s
 #   OWUI_API_KEY=sk-xxx ./tests/smoke_test.sh  # Custom API key
 #
 # Prerequisites: curl, jq, a running owuicore stack
@@ -14,7 +15,25 @@ set -uo pipefail
 OWUI_URL="${OWUI_URL:-http://localhost:3000}"
 OWUI_API_KEY="${OWUI_API_KEY:-}"
 PIPELINES_URL="${PIPELINES_URL:-http://localhost:9099}"
+# Mode: docker (default) or k8s
+MODE="${MODE:-docker}"
+K8S_NAMESPACE="${K8S_NAMESPACE:-miraiku}"
 QUICK="${1:-}"
+
+# Helper to exec python in the openwebui container (works for both modes)
+owui_exec() {
+  if [[ "$MODE" == "k8s" ]]; then
+    local pod
+    pod=$(kubectl get pod -n "$K8S_NAMESPACE" -l app=openwebui -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+    kubectl exec -n "$K8S_NAMESPACE" "$pod" -- "$@" 2>/dev/null
+  else
+    docker exec owuicore-openwebui-1 "$@" 2>/dev/null
+  fi
+}
+
+owui_env() {
+  owui_exec printenv "$1" 2>/dev/null || echo "unset"
+}
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -125,7 +144,7 @@ for mid in "anef-regulatory.assistant" "anef-regulatory.legal" "graphrag-bridge.
 done
 
 # Default model (check env var on container or DB config)
-default_model=$(docker exec owuicore-openwebui-1 printenv DEFAULT_MODELS 2>/dev/null || echo "unset")
+default_model=$(owui_env DEFAULT_MODELS)
 if [[ "$default_model" == *"gpt-oss-120b"* ]]; then
   pass "Default model: gpt-oss-120b"
 else
@@ -148,6 +167,91 @@ if (( filter_count >= 1 )); then
   pass "Vision filter registered ($filter_count)"
 else
   fail "Vision filter" "not found"
+fi
+
+# Tool calling prerequisites — without these, tools are registered but NEVER called
+# This catches the silent failure where everything looks OK but the LLM never triggers tools.
+
+# 2a. DIRECT_TOOL_CALLING must be enabled
+dtc=$(owui_env DIRECT_TOOL_CALLING)
+if [[ "$dtc" == "true" ]]; then
+  pass "DIRECT_TOOL_CALLING=true"
+else
+  fail "DIRECT_TOOL_CALLING" "got '$dtc' — tools will never be called by the LLM"
+fi
+
+# 2b. System prompt must contain tool routing instructions
+sys_prompt_len=$(owui_exec python3 -c "
+import sqlite3, json
+db = sqlite3.connect('/app/backend/data/webui.db')
+m = db.execute('SELECT params FROM model WHERE id=\"gpt-oss-120b\"').fetchone()
+p = json.loads(m[0]) if m and m[0] else {}
+print(len(p.get('system','')))
+" || echo 0)
+if (( sys_prompt_len > 100 )); then
+  pass "System prompt on gpt-oss-120b ($sys_prompt_len chars)"
+else
+  fail "System prompt on gpt-oss-120b" "empty or too short ($sys_prompt_len chars) — LLM has no tool routing instructions"
+fi
+
+# 2c. data_search must be in dataview tool specs (open data search capability)
+has_data_search=$(echo "$tools_json" | jq '[.[] | select(.id == "dataview")] | .[0].specs | map(.name) | any(. == "data_search")' 2>/dev/null || echo false)
+if [[ "$has_data_search" == "true" ]]; then
+  pass "data_search in dataview specs"
+else
+  fail "data_search in dataview" "missing — 'lister open data' prompt will fail"
+fi
+
+# 2d. DB must be writable (kubectl cp sets uid 501 → readonly for OWUI process)
+db_writable=$(owui_exec python3 -c "
+import sqlite3
+db = sqlite3.connect('/app/backend/data/webui.db')
+try:
+    db.execute('CREATE TABLE IF NOT EXISTS _t(x int)')
+    db.execute('DROP TABLE _t')
+    print('ok')
+except Exception as e:
+    print(f'fail: {e}')
+" || echo "fail")
+if [[ "$db_writable" == "ok" ]]; then
+  pass "DB writable"
+else
+  fail "DB writable" "$db_writable — chats will fail with 400. Fix: chmod 666 webui.db"
+fi
+
+# 2e. Tool valves must not point to localhost/docker (k8s only)
+if [[ "$MODE" == "k8s" ]]; then
+  bad_valves=$(owui_exec python3 -c "
+import sqlite3, json
+db = sqlite3.connect('/app/backend/data/webui.db')
+bad = []
+for row in db.execute('SELECT id, valves FROM tool').fetchall():
+    v = json.loads(row[1]) if row[1] else {}
+    for k, val in v.items():
+        if isinstance(val, str) and ('localhost' in val or 'host.docker.internal' in val):
+            bad.append(f'{row[0]}.{k}={val}')
+    if not v:
+        bad.append(f'{row[0]}: empty valves (using docker defaults)')
+print('|'.join(bad) if bad else 'ok')
+" || echo "fail")
+  if [[ "$bad_valves" == "ok" ]]; then
+    pass "Tool valves point to k8s services"
+  else
+    fail "Tool valves" "$bad_valves — tools will fail to reach backends"
+  fi
+fi
+
+# 2f. MCP label patch (postStart lifecycle hook must have run)
+mcp_patched=$(owui_exec grep -c "server.get('name', 'MCP Tool Server')" /app/backend/open_webui/routers/tools.py || echo 0)
+if [[ "$mcp_patched" -ge 1 ]]; then
+  pass "MCP label patch applied"
+else
+  mcp_generic=$(owui_exec grep -c "'MCP Tool Server')" /app/backend/open_webui/routers/tools.py || echo 0)
+  if [[ "$mcp_generic" -ge 1 ]]; then
+    fail "MCP label patch" "not applied — MCP servers show as 'MCP Tool Server' in UI"
+  else
+    skip "MCP label patch" "could not check"
+  fi
 fi
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -266,7 +370,7 @@ else
 fi
 
 # SearXNG from inside OWUI container (same network path)
-resp=$(docker exec owuicore-openwebui-1 curl -sS "http://searxng:8080/search?q=test&format=json" 2>/dev/null)
+resp=$(owui_exec curl -sS "http://searxng:8080/search?q=test&format=json")
 result_count=$(echo "$resp" | jq '.results | length' 2>/dev/null || echo 0)
 if (( result_count > 0 )); then
   pass "SearXNG via owui-net ($result_count results)"

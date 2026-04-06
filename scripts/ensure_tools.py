@@ -426,10 +426,12 @@ SYSTEM_PROMPTS = {
         "- \"extrais\", \"contenu\", \"lis\", \"resume cette page\" → `websnap(url)`\n"
         "- \"compare\" + plusieurs URLs → `compare_urls(urls)`\n\n"
         "Si l'utilisateur uploade une image → `analyze_image(query)`\n\n"
-        "Si l'utilisateur parle de donnees (CSV, Excel, fichier) :\n"
+        "Si l'utilisateur parle de donnees (CSV, Excel, fichier, open data) :\n"
+        "- chercher des datasets open data → `data_search(query)`\n"
         "- apercu / premieres lignes → `data_preview(url)`\n"
         "- schema / colonnes / types → `data_schema(url)`\n"
-        "- question sur les donnees → `data_query(url, question)`\n\n"
+        "- question sur les donnees → `data_query(url, question)`\n"
+        "- si l'utilisateur uploade un fichier tabulaire → `data_preview()` (sans url)\n\n"
         "Si l'utilisateur parle de Tchap (messagerie) :\n"
         "- se connecter → `tchap_connect()`\n"
         "- lister les salons → `tchap_rooms()`\n"
@@ -619,8 +621,11 @@ def main():
         pipelines_dir = Path("/pipelines-out") if Path("/pipelines-out").exists() else ROOT_DIR / "pipelines"
     else:
         pipelines_dir = Path("/app/pipelines")
-    pipeline_count = deploy_pipelines(plugins, pipelines_dir)
-    print(f"Deployed {pipeline_count} pipelines")
+    try:
+        pipeline_count = deploy_pipelines(plugins, pipelines_dir)
+        print(f"Deployed {pipeline_count} pipelines")
+    except OSError as e:
+        print(f"  SKIP pipelines: {e}")
 
     # 3. Ensure MCP servers
     print("\n--- MCP Servers ---")
@@ -630,7 +635,7 @@ def main():
             "url": "https://mcp.data.gouv.fr/mcp",
             "type": "mcp",
             "path": "",
-            "name": "Données ouvertes France (data.gouv.fr)",
+            "name": "Open Data (mcp)",
             "description": "Recherche parmi 74 000+ jeux de données publics",
             "auth_type": "none",
             "key": "",
