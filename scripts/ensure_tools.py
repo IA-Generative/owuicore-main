@@ -446,7 +446,9 @@ SYSTEM_PROMPTS = {
         "- Ne reponds jamais a la place d'un outil : appelle-le.\n"
         "- Ne fabrique pas d'URL, de salons, ni de messages.\n"
         "- Cite toujours la source (URL) dans ta reponse.\n"
-        "- Pour Tchap : pseudonymise les noms (Utilisateur_1, etc.)."
+        "- Pour Tchap : pseudonymise les noms (Utilisateur_1, etc.).\n"
+        "- Si data_search ne retourne rien et que l'utilisateur mentionne un site ou un organisme, utilise `websnap(url)` pour extraire les donnees directement depuis le site web.\n"
+        "- Si l'utilisateur demande des donnees temps reel (qualite de l'air, meteo, trafic, etc.), prefere `websnap(url)` car data.gouv.fr ne contient pas de donnees en temps reel."
     ),
 }
 
