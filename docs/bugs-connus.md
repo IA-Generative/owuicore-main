@@ -124,16 +124,28 @@ for row in db.execute('SELECT id, valves FROM tool').fetchall():
 
 ---
 
-## 6. MCP server data.gouv.fr — NoneType crash (RESOLU)
+## 6. MCP server data.gouv.fr — NoneType crash (PARTIELLEMENT RESOLU)
 
 **Symptome** : Le MCP `data-gouv-fr` est active, le LLM l'appelle, mais ca crashe avec `NoneType is not iterable`.
 
-**Cause racine** : Le serveur MCP `https://mcp.data.gouv.fr/mcp` retourne un format incompatible avec le parsing SSE de OWUI v0.8.12. L'erreur est invisible cote serveur (HTTP 200) car elle se produit dans le stream SSE. Issue open-webui [#13125](https://github.com/open-webui/open-webui/issues/13125).
+**Cause racine trouvee** : Ce n'etait PAS un bug MCP. C'etait notre filter `dataview_auto_preview` qui crashait car OWUI passe `files: null` (pas `[]`) dans `body.metadata`. Le crash dans `_find_all_tabular_files` se produisait a chaque requete chat, **avant** que le MCP soit appele.
 
-**Resolution** : MCP desactive dans `ensure_tools.py`. Remplace par le tool `data_search` (v1.4.0) qui utilise l'API REST de data.gouv.fr directement :
-- `data_search(query, organization, tag)` — recherche avec filtres
-- `data_list_popular(theme)` — datasets les plus consultes par theme
-- Memes fonctionnalites que le MCP, sans le protocole intermediaire
+L'erreur etait masquee par un `log.debug` dans `main.py` ligne 1816 — invisible en log level INFO. Le patch `log.debug` → `log.exception` a revele le vrai traceback.
+
+**Fix applique** : `.get("files") or []` au lieu de `.get("files", [])` dans le filter.
+
+**Etat actuel** : MCP desactive dans `ensure_tools.py`, remplace par le tool `data_search` (v1.4.0) qui utilise l'API REST de data.gouv.fr :
+- `data_search(query, organization, tag, page)` — recherche avec filtres et pagination
+- `data_list_popular(theme, page)` — datasets les plus consultes par theme
+
+**Prochaine etape** : Le MCP officiel (https://github.com/datagouv/datagouv-mcp) est plus riche que notre tool :
+- 9 fonctions vs 5 (search, list_resources, query_resource_data, get_metrics, etc.)
+- Pagination, filtrage et tri natifs cote serveur
+- Acces direct aux donnees sans telecharger le fichier entier
+
+Maintenant que le crash du filter est corrige, le MCP pourrait fonctionner a nouveau.
+A tester : reactiver le MCP + garder nos tools pour l'upload/preview de fichiers locaux.
+Le MCP gererait la recherche/exploration, nos tools gereraient les fichiers uploades.
 
 ---
 
