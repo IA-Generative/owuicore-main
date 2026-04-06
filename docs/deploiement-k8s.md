@@ -107,6 +107,42 @@ print('Done')
 "
 ```
 
+### 6. NoneType is not iterable sur les tool calls
+
+**Symptome** : Le LLM appelle un tool (ex: `data_search`) mais l'UI affiche `'NoneType' object is not iterable`. Aucune erreur dans les logs serveur.
+
+**Cause** : Bug dans le middleware OWUI v0.8.12 (`utils/middleware.py`). Quand le LLM Scaleway retourne un `tool_calls` avec des arguments vides (`"arguments": "{\"query\": \"\"}"`), OWUI crashe en iterant un champ `None` lors du processing du resultat du tool. L'erreur est dans le stream SSE, pas dans les logs serveur — ce qui la rend invisible cote backend.
+
+**Diagnostic** :
+- Les logs serveur montrent `POST /api/chat/completions 200` (pas d'erreur)
+- Le chat history montre un assistant vide (pas de contenu, pas de tool_calls sauvegardés)
+- En testant l'API Scaleway directement, on voit que le LLM envoie `query: ""` quand le prompt est generique
+
+**Workaround applique** : Le system prompt contient une instruction explicite pour ne jamais envoyer de parametres vides aux tools :
+```
+data_search(query) — IMPORTANT : query ne doit JAMAIS etre vide,
+utilise les mots-cles de l'utilisateur ou 'donnees ouvertes' par defaut
+```
+
+En complement, le tool `data_search` a un fallback : si `query` est vide, il utilise `"données ouvertes"` par defaut au lieu de crasher.
+
+**Fix definitif** : Mettre a jour Open WebUI vers une version > 0.8.12 qui corrige l'iteration de `tool_calls` avec des valeurs `None`.
+
+### 7. Embeddings Scaleway — rate limit 429
+
+**Symptome** : Upload de fichiers echoue avec `Unexpected token '<'` ou `429 Too Many Requests`.
+
+**Cause** : OWUI traite automatiquement chaque fichier uploade via RAG (Tika extraction → embeddings). Avec l'API Scaleway pour les embeddings (`bge-multilingual-gemma2`), le rate limit est vite atteint, surtout avec des fichiers volumineux.
+
+**Workaround applique** : Utiliser un modele d'embeddings local au lieu de l'API Scaleway :
+```yaml
+RAG_EMBEDDING_ENGINE: ""
+RAG_EMBEDDING_MODEL: sentence-transformers/all-MiniLM-L6-v2
+```
+C'est plus lent (~3s par fichier au lieu de <1s) mais sans limite de debit.
+
+**Alternative** : Verifier l'identite du compte Scaleway (Settings → Identity verification) pour augmenter les quotas, puis repasser sur l'API distante avec un batch_size reduit (`RAG_EMBEDDING_BATCH_SIZE: "4"`).
+
 ## Architecture des fichiers de config
 
 ```

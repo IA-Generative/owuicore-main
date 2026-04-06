@@ -427,7 +427,7 @@ SYSTEM_PROMPTS = {
         "- \"compare\" + plusieurs URLs → `compare_urls(urls)`\n\n"
         "Si l'utilisateur uploade une image → `analyze_image(query)`\n\n"
         "Si l'utilisateur parle de donnees (CSV, Excel, fichier, open data) :\n"
-        "- chercher des datasets open data → `data_search(query)`\n"
+        "- chercher des datasets open data → `data_search(query)` — IMPORTANT : query ne doit JAMAIS etre vide, utilise les mots-cles de l'utilisateur ou 'donnees ouvertes' par defaut\n"
         "- apercu / premieres lignes → `data_preview(url)`\n"
         "- schema / colonnes / types → `data_schema(url)`\n"
         "- question sur les donnees → `data_query(url, question)`\n"

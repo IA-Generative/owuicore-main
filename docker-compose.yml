@@ -38,11 +38,9 @@ services:
       DIRECT_TOOL_CALLING: "true"
       # Disable auto web search — let the model decide when to search via tools
       ENABLE_SEARCH_QUERY_GENERATION: "false"
-      # --- RAG: embeddings via Scaleway (no local model download) ---
-      RAG_EMBEDDING_ENGINE: openai
-      RAG_EMBEDDING_MODEL: ${OPENAI_EMBEDDING_MODEL:-bge-multilingual-gemma2}
-      RAG_OPENAI_API_BASE_URL: ${SCW_LLM_BASE_URL:-}
-      RAG_OPENAI_API_KEY: ${SCW_SECRET_KEY_LLM:-}
+      # --- RAG: local embeddings (avoids Scaleway rate limits) ---
+      RAG_EMBEDDING_ENGINE: ""
+      RAG_EMBEDDING_MODEL: sentence-transformers/all-MiniLM-L6-v2
       RAG_EMBEDDING_BATCH_SIZE: "16"
       # --- RAG: document extraction via Tika ---
       CONTENT_EXTRACTION_ENGINE: tika
