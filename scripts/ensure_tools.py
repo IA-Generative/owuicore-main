@@ -655,6 +655,7 @@ def main():
             "description": "Recherche parmi 74 000+ jeux de données publics (data.gouv.fr)",
             "auth_type": "none",
             "key": "",
+            "info": {"id": "data-gouv-fr", "name": "Open Data (mcp)", "description": "Recherche parmi 74 000+ jeux de données publics"},
             "config": {"enable": True},
         },
         {
@@ -666,6 +667,7 @@ def main():
             "description": "Accès aux données Grist : documents, tables, records, requêtes SQL (grist.numerique.gouv.fr)",
             "auth_type": "none",
             "key": "",
+            "info": {"id": "grist", "name": "Grist (mcp)", "description": "Accès aux données Grist"},
             "config": {"enable": True},
         },
     ]
