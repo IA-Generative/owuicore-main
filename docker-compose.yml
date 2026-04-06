@@ -4,6 +4,13 @@
 services:
   openwebui:
     image: ${OPENWEBUI_IMAGE:-ghcr.io/open-webui/open-webui:v0.8.12}
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        # Patch MCP label: use connection name instead of generic "MCP Tool Server"
+        sed -i "s/'name': server.get('info', {}).get('name', 'MCP Tool Server')/'name': server.get('info', {}).get('name', server.get('name', 'MCP Tool Server'))/" /app/backend/open_webui/routers/tools.py 2>/dev/null || true
+        # Start OWUI
+        exec bash /app/backend/start.sh
     env_file:
       - .env
     environment:

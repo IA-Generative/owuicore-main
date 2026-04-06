@@ -629,11 +629,21 @@ def main():
     except OSError as e:
         print(f"  SKIP pipelines: {e}")
 
-    # 3. MCP servers — disabled, replaced by data_search tool in dataview
-    # The MCP data.gouv.fr server crashes OWUI v0.8.12 middleware (NoneType
-    # is not iterable in SSE stream). data_search uses the REST API instead.
+    # 3. MCP servers
     print("\n--- MCP Servers ---")
-    mcp_servers = []
+    mcp_servers = [
+        {
+            "id": "data-gouv-fr",
+            "url": "https://mcp.data.gouv.fr/mcp",
+            "type": "mcp",
+            "path": "",
+            "name": "Open Data (mcp)",
+            "description": "Recherche parmi 74 000+ jeux de données publics (data.gouv.fr)",
+            "auth_type": "none",
+            "key": "",
+            "config": {"enable": True},
+        },
+    ]
     ensure_mcp_servers(db_path, mcp_servers)
 
     # 4. Ensure OpenWebUI config (web search, image gen)
@@ -661,6 +671,29 @@ def main():
         register_llm_models(db_path, llm_url, llm_key)
     else:
         print("  SKIP: SCW_LLM_BASE_URL or SCW_SECRET_KEY_LLM not set")
+
+    # 8. Patch MCP label in OWUI source (use connection name instead of generic "MCP Tool Server")
+    print("\n--- MCP Label Patch ---")
+    # The MCP label patch is applied at container startup via:
+    # - Docker: entrypoint sed in docker-compose.yml
+    # - K8s: lifecycle.postStart in deployment-openwebui.yaml
+    # This section patches if running inside the openwebui container directly.
+    tools_py_paths = [
+        Path("/app/backend/open_webui/routers/tools.py"),
+    ]
+    for tools_py in tools_py_paths:
+        if not tools_py.exists():
+            continue
+        content = tools_py.read_text()
+        old_label = "'name': server.get('info', {}).get('name', 'MCP Tool Server')"
+        new_label = "'name': server.get('info', {}).get('name', server.get('name', 'MCP Tool Server'))"
+        if old_label in content:
+            tools_py.write_text(content.replace(old_label, new_label))
+            print(f"  Patched: {tools_py}")
+        elif new_label in content:
+            print(f"  Already patched: {tools_py}")
+        else:
+            print(f"  Skip: pattern not found in {tools_py}")
 
     print("\n=== Done ===")
 
