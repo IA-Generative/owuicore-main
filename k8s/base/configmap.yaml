@@ -16,3 +16,5 @@ data:
   SEARXNG_HOST: "${SEARXNG_HOST}"
   SEARXNG_BASE_URL: "http://searxng"
   OPENID_PROVIDER_URL: "https://${KEYCLOAK_HOST}/realms/openwebui/.well-known/openid-configuration"
+  ANEF_API_BASE: "http://anef-pj-knowledge-assistant"
+  ANEF_PUBLIC_BASE: "http://anef-pj-knowledge-assistant"
