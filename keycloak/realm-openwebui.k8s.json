@@ -29,12 +29,14 @@
       "redirectUris": [
         "http://localhost:3000/*",
         "http://127.0.0.1:3000/*",
-        "https://${OPENWEBUI_HOST}/*"
+        "https://${OPENWEBUI_HOST}/*",
+        "https://assistant.fake-domain.name/*"
       ],
       "webOrigins": [
         "http://localhost:3000",
         "http://127.0.0.1:3000",
-        "https://${OPENWEBUI_HOST}"
+        "https://${OPENWEBUI_HOST}",
+        "https://assistant.fake-domain.name"
       ],
       "standardFlowEnabled": true,
       "directAccessGrantsEnabled": true,
@@ -135,6 +137,58 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "genial",
+      "name": "GENIAL",
+      "description": "GENIAL - Assistant IA Generaliste",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "implicitFlowEnabled": false,
+      "serviceAccountsEnabled": false,
+      "rootUrl": "https://genial.fake-domain.name",
+      "baseUrl": "/",
+      "redirectUris": [
+        "https://genial.fake-domain.name/*",
+        "https://genial.fake-domain.name/oauth2/callback",
+        "http://localhost:8080/*"
+      ],
+      "webOrigins": [
+        "https://genial.fake-domain.name",
+        "http://localhost:8080"
+      ],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "post.logout.redirect.uris": "https://genial.fake-domain.name/+"
+      },
+      "defaultClientScopes": ["openid", "profile", "email"],
+      "optionalClientScopes": ["groups"]
+    },
+    {
+      "clientId": "bootstrap-iassistant",
+      "name": "Assistant Mirai LibreOffice",
+      "description": "Client public PKCE pour le plug-in LibreOffice Mirai",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": true,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "frontchannelLogout": false,
+      "redirectUris": [
+        "http://localhost:*",
+        "http://127.0.0.1:*"
+      ],
+      "webOrigins": ["+"],
+      "attributes": {
+        "pkce.code.challenge.method": "S256",
+        "access.token.lifespan": "300",
+        "post.logout.redirect.uris": "+"
+      }
     }
   ],
   "users": [
