@@ -1637,6 +1637,21 @@
           "temporary": false
         }
       ]
+    },
+    {
+      "username": "isham",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Isham",
+      "lastName": "DINUM",
+      "email": "isham@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ishampassword",
+          "temporary": false
+        }
+      ]
     }
   ]
 }
