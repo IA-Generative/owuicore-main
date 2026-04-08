@@ -419,6 +419,366 @@
       "realmRoles": [
         "admin"
       ]
+    },
+    {
+      "username": "patrick",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Patrick",
+      "lastName": "Test",
+      "email": "patrick@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "patrickpwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "eric",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Eric",
+      "lastName": "Test",
+      "email": "eric@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ericpwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "sandrine",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Sandrine",
+      "lastName": "Test",
+      "email": "sandrine@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "sandrinepwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "olivier",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Olivier",
+      "lastName": "Test",
+      "email": "olivier@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "olivierpwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "hassan",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Hassan",
+      "lastName": "Test",
+      "email": "hassan@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "hassanpwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "mathieu",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Mathieu",
+      "lastName": "Test",
+      "email": "mathieu@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "mathieupwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "lisa",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Lisa",
+      "lastName": "Test",
+      "email": "lisa@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "lisapwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "johanna",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Johanna",
+      "lastName": "Test",
+      "email": "johanna@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "johannapwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "philippe",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Philippe",
+      "lastName": "Test",
+      "email": "philippe@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "philippepwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "alexandre",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Alexandre",
+      "lastName": "Test",
+      "email": "alexandre@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "alexandrepwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "thibault",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Thibault",
+      "lastName": "Test",
+      "email": "thibault@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "thibaultpwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "antonio",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Antonio",
+      "lastName": "Test",
+      "email": "antonio@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "antoniopwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "kevin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Kevin",
+      "lastName": "Test",
+      "email": "kevin@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "kevinpwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "soumia",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Soumia",
+      "lastName": "Test",
+      "email": "soumia@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "soumiapwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "thierry",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Thierry",
+      "lastName": "Test",
+      "email": "thierry@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "thierrypwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "misu",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Misu",
+      "lastName": "Test",
+      "email": "misu@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "misupwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "fabrice",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Fabrice",
+      "lastName": "Test",
+      "email": "fabrice@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "fabricepwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "victor",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Victor",
+      "lastName": "Test",
+      "email": "victor@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "victorpwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "damien",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Damien",
+      "lastName": "Test",
+      "email": "damien@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "damienpwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
+    },
+    {
+      "username": "claire",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Claire",
+      "lastName": "Test",
+      "email": "claire@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "clairepwd",
+          "temporary": false
+        }
+      ],
+      "realmRoles": [
+        "user"
+      ]
     }
   ]
 }
