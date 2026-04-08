@@ -643,6 +643,21 @@
       ]
     },
     {
+      "username": "christophe",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Christophe",
+      "lastName": "BFN",
+      "email": "christophe@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "christophepassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
       "username": "damien",
       "enabled": true,
       "emailVerified": true,
@@ -676,6 +691,906 @@
       ],
       "realmRoles": [
         "user"
+      ]
+    },
+    {
+      "username": "frederic",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Frederic",
+      "lastName": "BEAI",
+      "email": "frederic@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "fredericpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kadia",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Kadia",
+      "lastName": "BEAI",
+      "email": "kadia@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "kadiapassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "claudia",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Claudia",
+      "lastName": "BEAI",
+      "email": "claudia@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "claudiapassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "paloma",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Paloma",
+      "lastName": "BAOT",
+      "email": "paloma@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "palomapassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "joel",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Joel",
+      "lastName": "BAOT",
+      "email": "joel@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "joelpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "audrey",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Audrey",
+      "lastName": "BAOT",
+      "email": "audrey@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "audreypassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "caroline",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Caroline",
+      "lastName": "BAOT",
+      "email": "caroline@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "carolinepassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "anna",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Anna",
+      "lastName": "BAOT",
+      "email": "anna@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "annapassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "arnaud",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Arnaud",
+      "lastName": "BAOT",
+      "email": "arnaud@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "arnaudpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "florian",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Florian",
+      "lastName": "BPNM",
+      "email": "florian@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "florianpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "karim",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Karim",
+      "lastName": "BFN",
+      "email": "karim@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "karimpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "david",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "David",
+      "lastName": "BFN",
+      "email": "david@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "davidpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "leo",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Leo",
+      "lastName": "BFN",
+      "email": "leo@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "leopassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "sarah",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Sarah",
+      "lastName": "BAOT",
+      "email": "sarah@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "sarahpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "hana",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Hana",
+      "lastName": "BEAI",
+      "email": "hana@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "hanapassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "melissa",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Melissa",
+      "lastName": "BFN",
+      "email": "melissa@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "melissapassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "baudouin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Baudouin",
+      "lastName": "Econocom",
+      "email": "baudouin@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "baudouinpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "valentine",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Valentine",
+      "lastName": "Onepoint",
+      "email": "valentine@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "valentinepassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "pengfei",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Pengfei",
+      "lastName": "Open",
+      "email": "pengfei@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "pengfeipassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "stanislas",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Stanislas",
+      "lastName": "Open",
+      "email": "stanislas@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "stanislaspassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "clement",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Clement",
+      "lastName": "Onepoint",
+      "email": "clement@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "clementpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "louise",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Louise",
+      "lastName": "Theodo",
+      "email": "louise@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "louisepassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "alphonse",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Alphonse",
+      "lastName": "Theodo",
+      "email": "alphonse@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "alphonsepassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "eugenie",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Eugenie",
+      "lastName": "Onepoint",
+      "email": "eugenie@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "eugeniepassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "sophie",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Sophie",
+      "lastName": "Onepoint",
+      "email": "sophie@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "sophiepassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "henri",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Henri",
+      "lastName": "Onepoint",
+      "email": "henri@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "henripassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "thomas",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Thomas",
+      "lastName": "Theodo",
+      "email": "thomas@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "thomaspassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "hugo",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Hugo",
+      "lastName": "Theodo",
+      "email": "hugo@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "hugopassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "sebastien",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Sebastien",
+      "lastName": "Theodo",
+      "email": "sebastien@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "sebastienpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "robin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Robin",
+      "lastName": "Open",
+      "email": "robin@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "robinpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "anais",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Anais",
+      "lastName": "Theodo",
+      "email": "anais@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "anaispassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kenza",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Kenza",
+      "lastName": "Saegus",
+      "email": "kenza@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "kenzapassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "johann",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Johann",
+      "lastName": "Linagora",
+      "email": "johann@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "johannpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "ousmane",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Ousmane",
+      "lastName": "Open",
+      "email": "ousmane@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ousmanepassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "ronan",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Ronan",
+      "lastName": "Open",
+      "email": "ronan@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "ronanpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "franck",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Franck",
+      "lastName": "Open",
+      "email": "franck@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "franckpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "quentin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Quentin",
+      "lastName": "Open",
+      "email": "quentin@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "quentinpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "zineb",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Zineb",
+      "lastName": "Theodo",
+      "email": "zineb@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "zinebpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "maylis",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Maylis",
+      "lastName": "Theodo",
+      "email": "maylis@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "maylispassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kilian",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Kilian",
+      "lastName": "Linagora",
+      "email": "kilian@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "kilianpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "leotena",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Leo-Tena",
+      "lastName": "BPNM",
+      "email": "leotena@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "leotenapassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "raphael",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Raphael",
+      "lastName": "Theodo",
+      "email": "raphael@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "raphaelpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "jeanne",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Jeanne",
+      "lastName": "Theodo",
+      "email": "jeanne@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "jeannepassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "titouan",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Titouan",
+      "lastName": "Theodo",
+      "email": "titouan@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "titouanpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "noe",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Noe",
+      "lastName": "Theodo",
+      "email": "noe@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "noepassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "malo",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Malo",
+      "lastName": "Theodo",
+      "email": "malo@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "malopassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "kelis",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Kelis",
+      "lastName": "BEAI",
+      "email": "kelis@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "kelispassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "olga",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Olga",
+      "lastName": "Onepoint",
+      "email": "olga@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "olgapassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "sylvain",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Sylvain",
+      "lastName": "Theodo",
+      "email": "sylvain@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "sylvainpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "theodore",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Theodore",
+      "lastName": "Theodo",
+      "email": "theodore@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "theodorepassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "nidhal",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Nidhal",
+      "lastName": "Theodo",
+      "email": "nidhal@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "nidhalpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "richard",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Richard",
+      "lastName": "Linagora",
+      "email": "richard@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "richardpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "benjamin",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Benjamin",
+      "lastName": "Linagora",
+      "email": "benjamin@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "benjaminpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "andrzej",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Andrzej",
+      "lastName": "Linagora",
+      "email": "andrzej@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "andrzejpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "paul",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Paul",
+      "lastName": "Linagora",
+      "email": "paul@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "paulpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "xavier",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Xavier",
+      "lastName": "Linagora",
+      "email": "xavier@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "xavierpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "francoisregis",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Francois-Regis",
+      "lastName": "Capgemini",
+      "email": "francoisregis@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "francoisregispassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "claude",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Claude",
+      "lastName": "Linagora",
+      "email": "claude@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "claudepassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "alban",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Alban",
+      "lastName": "Linagora",
+      "email": "alban@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "albanpassword",
+          "temporary": false
+        }
+      ]
+    },
+    {
+      "username": "jeanalexis",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Jean-Alexis",
+      "lastName": "Theodo",
+      "email": "jeanalexis@test.local",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "jeanalexispassword",
+          "temporary": false
+        }
       ]
     }
   ]
