@@ -14,10 +14,45 @@ spec:
         app: openwebui
     spec:
       enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      initContainers:
+        # Copy app code to a writable overlay, then apply the MCP label patch
+        - name: patch-mcp-label
+          image: ${OPENWEBUI_IMAGE}
+          command:
+            - /bin/sh
+            - -c
+            - |
+              cp -a /app/backend/open_webui/* /mnt/open_webui/ &&
+              sed -i "s/'name': server.get('info', {}).get('name', 'MCP Tool Server')/'name': server.get('info', {}).get('name', server.get('name', 'MCP Tool Server'))/" /mnt/open_webui/routers/tools.py 2>/dev/null || true
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: open-webui-code
+              mountPath: /mnt/open_webui
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
       containers:
         - name: openwebui
           image: ${OPENWEBUI_IMAGE}
           imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           envFrom:
             - configMapRef:
                 name: owui-socle-config
@@ -93,14 +128,6 @@ spec:
               value: "tika"
             - name: TIKA_SERVER_URL
               value: "http://tika:9998"
-          lifecycle:
-            postStart:
-              exec:
-                command:
-                  - /bin/sh
-                  - -c
-                  - |
-                    sed -i "s/'name': server.get('info', {}).get('name', 'MCP Tool Server')/'name': server.get('info', {}).get('name', server.get('name', 'MCP Tool Server'))/" /app/backend/open_webui/routers/tools.py 2>/dev/null || true
           ports:
             - containerPort: 8080
               name: http
@@ -113,7 +140,15 @@ spec:
           volumeMounts:
             - name: openwebui-data
               mountPath: /app/backend/data
+            - name: open-webui-code
+              mountPath: /app/backend/open_webui
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: openwebui-data
           persistentVolumeClaim:
             claimName: openwebui-data
+        - name: open-webui-code
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}

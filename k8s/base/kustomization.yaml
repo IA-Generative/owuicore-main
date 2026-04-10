@@ -7,6 +7,7 @@ resources:
   - deployment-openwebui.yaml
   - service-openwebui.yaml
   - ingress-openwebui.yaml
+  - pvc-keycloak.yaml
   - deployment-keycloak.yaml
   - service-keycloak.yaml
   - ingress-keycloak.yaml

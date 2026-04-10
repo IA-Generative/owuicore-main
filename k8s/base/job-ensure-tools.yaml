@@ -11,6 +11,11 @@ spec:
   template:
     spec:
       restartPolicy: Never
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
         - name: ensure-tools
           image: python:3.12-slim
@@ -18,11 +23,21 @@ spec:
             - bash
             - -c
             - |
-              pip install -q pyyaml &&
+              pip install -q --user pyyaml &&
               python3 /scripts/ensure_tools.py \
                 --mode k8s \
                 --wait \
                 --db-path /owui-data/webui.db
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          env:
+            - name: HOME
+              value: /tmp
+            - name: PATH
+              value: /tmp/.local/bin:/usr/local/bin:/usr/bin:/bin
           volumeMounts:
             - name: scripts
               mountPath: /scripts
@@ -32,13 +47,15 @@ spec:
             - name: plugins
               mountPath: /plugins
               readOnly: true
+            - name: tmp
+              mountPath: /tmp
           resources:
             requests:
               cpu: 50m
               memory: 64Mi
             limits:
               cpu: 200m
-              memory: 128Mi
+              memory: 256Mi
       volumes:
         - name: scripts
           configMap:
@@ -50,3 +67,5 @@ spec:
           configMap:
             name: plugin-registry
             optional: true
+        - name: tmp
+          emptyDir: {}

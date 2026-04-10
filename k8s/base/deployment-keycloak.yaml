@@ -13,6 +13,11 @@ spec:
       labels:
         app: keycloak
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
         - name: keycloak
           image: quay.io/keycloak/keycloak:24.0
@@ -21,6 +26,11 @@ spec:
             - --import-realm
             - --hostname=${KEYCLOAK_HOST}
             - --proxy-headers=xforwarded
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           env:
             - name: KEYCLOAK_ADMIN
               value: "${KEYCLOAK_ADMIN}"
@@ -42,7 +52,17 @@ spec:
             - name: keycloak-realm
               mountPath: /opt/keycloak/data/import/realm-openwebui.json
               subPath: realm-openwebui.json
+              readOnly: true
+            - name: keycloak-data
+              mountPath: /opt/keycloak/data/h2
+            - name: tmp
+              mountPath: /tmp
       volumes:
         - name: keycloak-realm
           configMap:
             name: keycloak-realm
+        - name: keycloak-data
+          persistentVolumeClaim:
+            claimName: keycloak-data
+        - name: tmp
+          emptyDir: {}

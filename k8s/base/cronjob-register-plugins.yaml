@@ -15,12 +15,21 @@ spec:
       template:
         spec:
           restartPolicy: Never
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            runAsGroup: 1000
           containers:
             - name: register
               image: python:3.12-slim
               command:
                 - python3
                 - /scripts/register_plugins.py
+              securityContext:
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop: ["ALL"]
               env:
                 - name: OWUI_API_URL
                   value: "http://openwebui.${NAMESPACE}.svc.cluster.local:80"
@@ -36,6 +45,8 @@ spec:
                       name: plugin-registry
                       key: PLUGIN_PATHS
                       optional: true
+                - name: HOME
+                  value: /tmp
               volumeMounts:
                 - name: scripts
                   mountPath: /scripts
@@ -43,6 +54,8 @@ spec:
                 - name: plugins
                   mountPath: /plugins
                   readOnly: true
+                - name: tmp
+                  mountPath: /tmp
               resources:
                 requests:
                   cpu: 50m
@@ -58,3 +71,5 @@ spec:
               configMap:
                 name: plugin-registry
                 optional: true
+            - name: tmp
+              emptyDir: {}

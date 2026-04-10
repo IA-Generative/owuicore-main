@@ -119,7 +119,7 @@ def get_existing_tools() -> dict[str, dict]:
 # Tool source processing (reused from old script)
 # ---------------------------------------------------------------------------
 
-def resolve_source(plugin_dir: Path, entry: dict) -> str:
+def resolve_source(plugin_dir: Path, entry: dict, url_context: str = "k8s") -> str:
     """Read the source Python file and apply URL replacements."""
     file_path = plugin_dir / entry["source_file"]
     if not file_path.exists():
@@ -130,9 +130,19 @@ def resolve_source(plugin_dir: Path, entry: dict) -> str:
 
     service = entry.get("service_name", "localhost")
     port = str(entry.get("service_port", 8000))
+    k8s_port = str(entry.get("k8s_port", port))
     for old, new in entry.get("url_replacements", {}).items():
         replacement = new.replace("{{service}}", service).replace("{{port}}", port)
         content = content.replace(old, replacement)
+
+    # For K8s context, replace Docker-local URLs with K8s service names
+    if url_context == "k8s":
+        for docker_host in [f"http://host.docker.internal:{port}",
+                            f"http://localhost:{port}"]:
+            content = content.replace(docker_host, f"http://{service}:{k8s_port}")
+        # Also replace openwebui references (Docker port 8080 → K8s port 80)
+        content = content.replace("http://host.docker.internal:8080", "http://openwebui:80")
+        content = content.replace("http://localhost:8080", "http://openwebui:80")
 
     return content
 

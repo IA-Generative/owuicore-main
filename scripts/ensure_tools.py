@@ -138,16 +138,19 @@ def register_tools_in_db(db_path: str, plugins: list[Path], url_context: str = "
             # Apply URL replacements for the target context
             service = entry.get("service_name", "localhost")
             port = str(entry.get("service_port", 8000))
+            k8s_port = str(entry.get("k8s_port", port))
             for old, new in entry.get("url_replacements", {}).items():
                 replacement = new.replace("{{service}}", service).replace("{{port}}", port)
                 content = content.replace(old, replacement)
 
-            # For K8s context, also replace host.docker.internal
+            # For K8s context, replace Docker-local URLs with K8s service names
             if url_context == "k8s":
-                content = content.replace(
-                    f"http://host.docker.internal:{port}",
-                    f"http://{service}:{port}"
-                )
+                for docker_host in [f"http://host.docker.internal:{port}",
+                                    f"http://localhost:{port}"]:
+                    content = content.replace(docker_host, f"http://{service}:{k8s_port}")
+                # Also replace openwebui references (Docker port 8080 → K8s port 80)
+                content = content.replace("http://host.docker.internal:8080", "http://openwebui:80")
+                content = content.replace("http://localhost:8080", "http://openwebui:80")
 
             try:
                 compile(content, tool_id, "exec")
@@ -169,6 +172,15 @@ def register_tools_in_db(db_path: str, plugins: list[Path], url_context: str = "
             is_filter = "class Filter" in content and "class Tools" not in content
 
             if is_filter:
+                # Preserve existing valves and meta overrides when updating a filter
+                existing_fn = conn.execute("SELECT meta FROM function WHERE id = ?", (tool_id,)).fetchone()
+                if existing_fn and existing_fn[0]:
+                    existing_meta = json.loads(existing_fn[0])
+                    new_meta = json.loads(meta)
+                    # Preserve valves set via UI/API
+                    if "valves" in existing_meta:
+                        new_meta["valves"] = existing_meta["valves"]
+                    meta = json.dumps(new_meta)
                 conn.execute(
                     """INSERT OR REPLACE INTO function
                     (id, user_id, name, type, content, meta, is_active, is_global, created_at, updated_at)

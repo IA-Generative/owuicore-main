@@ -13,9 +13,19 @@ spec:
       labels:
         app: tika
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 35002
+        runAsGroup: 35002
+        fsGroup: 35002
       containers:
         - name: tika
           image: apache/tika:latest
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
           ports:
             - containerPort: 9998
           readinessProbe:
@@ -30,6 +40,12 @@ spec:
             limits:
               memory: "1Gi"
               cpu: "500m"
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

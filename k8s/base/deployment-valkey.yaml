@@ -13,10 +13,27 @@ spec:
       labels:
         app: search-valkey
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        runAsGroup: 999
+        fsGroup: 999
       containers:
         - name: valkey
           image: ${VALKEY_IMAGE}
           imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
           args:
             - "--save"
             - ""
@@ -25,3 +42,13 @@ spec:
           ports:
             - containerPort: 6379
               name: redis
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: valkey-data
+              mountPath: /data
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: valkey-data
+          emptyDir: {}
