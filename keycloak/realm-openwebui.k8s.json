@@ -177,13 +177,12 @@
     {
       "clientId": "myvault",
       "name": "MyVault",
-      "description": "Client OIDC confidentiel pour MyVault",
+      "description": "Client OIDC public (PKCE) pour MyVault SPA",
       "enabled": true,
       "protocol": "openid-connect",
-      "publicClient": false,
-      "secret": "${MYVAULT_CLIENT_SECRET}",
+      "publicClient": true,
       "standardFlowEnabled": true,
-      "directAccessGrantsEnabled": true,
+      "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": false,
       "redirectUris": [
         "https://${MYVAULT_HOST}/*"
@@ -192,6 +191,7 @@
         "https://${MYVAULT_HOST}"
       ],
       "attributes": {
+        "pkce.code.challenge.method": "S256",
         "post.logout.redirect.uris": "https://${MYVAULT_HOST}/*"
       },
       "protocolMappers": [
