@@ -4,6 +4,7 @@
 
 CREATE DATABASE keycloak;
 CREATE DATABASE bootstrap;
+CREATE DATABASE myvault;
 
 -- Create a dedicated application user with limited privileges.
 -- Services should connect with this user, not the superuser.
@@ -16,3 +17,4 @@ END $$;
 
 GRANT ALL PRIVILEGES ON DATABASE keycloak  TO app;
 GRANT ALL PRIVILEGES ON DATABASE bootstrap TO app;
+GRANT ALL PRIVILEGES ON DATABASE myvault   TO app;
