@@ -16,7 +16,15 @@
         "name": "admin",
         "description": "Open WebUI administrator"
       }
-    ]
+    ],
+    "client": {
+      "myvault": [
+        {
+          "name": "myvault-admin",
+          "description": "Administrateur MyVault — gestion des applications, import/export, vue des utilisateurs"
+        }
+      ]
+    }
   },
   "groups": [
     {
@@ -306,6 +314,11 @@
       "realmRoles": [
         "admin"
       ],
+      "clientRoles": {
+        "myvault": [
+          "myvault-admin"
+        ]
+      },
       "groups": [
         "admin-dm"
       ]
