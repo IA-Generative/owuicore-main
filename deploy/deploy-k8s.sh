@@ -83,11 +83,17 @@ kubectl apply -f k8s/rendered/clusterissuer-letsencrypt.yaml
 
 echo "Applying PVCs..."
 kubectl apply -f k8s/rendered/pvc-openwebui.yaml
+kubectl apply -f k8s/rendered/pvc-postgres.yaml
 
 echo "Applying configmaps..."
 kubectl apply -f k8s/rendered/configmap.yaml
 [[ -f k8s/rendered/configmap-searxng.yaml ]] && kubectl apply -f k8s/rendered/configmap-searxng.yaml
 [[ -f k8s/rendered/configmap-pipelines.yaml ]] && kubectl apply -f k8s/rendered/configmap-pipelines.yaml
+
+# PostgreSQL init scripts configmap
+kubectl -n "$NAMESPACE" create configmap postgres-init \
+  --from-file=01-create-databases.sql=postgres/init/01-create-databases.sql \
+  --dry-run=client -o yaml | kubectl apply -f -
 
 # Keycloak realm configmap
 if [[ -f k8s/rendered/realm-openwebui.json ]]; then
@@ -98,7 +104,7 @@ fi
 
 echo "Applying deployments and services..."
 # Socle services
-for svc in openwebui keycloak pipelines searxng valkey tika; do
+for svc in postgres openwebui keycloak pipelines searxng valkey tika; do
   [[ -f "k8s/rendered/deployment-${svc}.yaml" ]] && kubectl apply -f "k8s/rendered/deployment-${svc}.yaml"
   [[ -f "k8s/rendered/service-${svc}.yaml" ]] && kubectl apply -f "k8s/rendered/service-${svc}.yaml"
 done
@@ -123,7 +129,7 @@ fi
 
 # --- Wait for readiness ---
 echo "Waiting for deployments to become available..."
-for svc in openwebui keycloak pipelines searxng search-valkey; do
+for svc in postgres openwebui keycloak pipelines searxng search-valkey; do
   if kubectl -n "$NAMESPACE" get deployment "$svc" >/dev/null 2>&1; then
     kubectl -n "$NAMESPACE" wait --for=condition=available "deployment/${svc}" \
       --timeout="${DEPLOYMENT_WAIT_TIMEOUT_SECONDS}s" || echo "Warning: ${svc} not ready"

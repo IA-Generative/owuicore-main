@@ -85,6 +85,11 @@ services:
       - --import-realm
       - --hostname-url=http://localhost:${KEYCLOAK_PORT:-8082}
       - --hostname-strict=false
+      - --db=postgres
+      - --db-url-host=postgres
+      - --db-url-database=${KC_DB_NAME:-keycloak}
+      - --db-username=${POSTGRES_USER:-owui}
+      - --db-password=${POSTGRES_PASSWORD:-owui}
     env_file:
       - .env
     environment:
@@ -96,6 +101,9 @@ services:
       - "${KEYCLOAK_PORT:-8082}:8080"
     networks:
       - owui-net
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   pipelines:
     image: ${PIPELINES_IMAGE:-ghcr.io/open-webui/pipelines:main}
@@ -166,6 +174,28 @@ services:
       timeout: 5s
       retries: 5
 
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-owui}
+      POSTGRES_USER: ${POSTGRES_USER:-owui}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-owui}
+      POSTGRES_INITDB_ARGS: "--locale=C --encoding=UTF8"
+      LANG: C
+      LC_ALL: C
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d:ro
+    networks:
+      - owui-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-owui}"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
   tika:
     image: apache/tika:latest
     ports:
@@ -229,6 +259,8 @@ services:
 volumes:
   openwebui-data:
     name: owui-socle-openwebui-data
+  postgres-data:
+    name: owui-socle-postgres-data
 
 networks:
   owui-net:
