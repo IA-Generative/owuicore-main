@@ -234,6 +234,58 @@
           }
         }
       ]
+    },
+    {
+      "clientId": "myvault",
+      "name": "MyVault",
+      "description": "Client OIDC confidentiel pour MyVault",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "CHANGE_ME",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": false,
+      "redirectUris": [
+        "https://myvault.example.com/*",
+        "http://localhost:8085/*"
+      ],
+      "webOrigins": [
+        "https://myvault.example.com",
+        "http://localhost:8085"
+      ],
+      "attributes": {
+        "post.logout.redirect.uris": "https://myvault.example.com/* http://localhost:8085/*"
+      },
+      "protocolMappers": [
+        {
+          "name": "groups",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-group-membership-mapper",
+          "consentRequired": false,
+          "config": {
+            "full.path": "false",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "true",
+            "claim.name": "groups"
+          }
+        },
+        {
+          "name": "myvault-client-roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-client-role-mapper",
+          "consentRequired": false,
+          "config": {
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "resource_access.myvault.roles",
+            "usermodel.clientRoleMapping.clientId": "myvault"
+          }
+        }
+      ]
     }
   ],
   "users": [
