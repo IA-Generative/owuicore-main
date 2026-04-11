@@ -20,6 +20,9 @@ kubectl -n "$NAMESPACE" create secret generic owui-socle-secrets \
   --from-literal=SEARXNG_SECRET="${SEARXNG_SECRET:-CHANGE_ME}" \
   --from-literal=KEYCLOAK_ADMIN_PASSWORD="${KEYCLOAK_ADMIN_PASSWORD:-CHANGE_ME}" \
   --from-literal=KEYCLOAK_CLIENT_SECRET="${KEYCLOAK_CLIENT_SECRET:-CHANGE_ME}" \
+  --from-literal=POSTGRES_USER="${POSTGRES_USER:-owui}" \
+  --from-literal=POSTGRES_PASSWORD="${POSTGRES_PASSWORD:-CHANGE_ME}" \
+  --from-literal=MYVAULT_CLIENT_SECRET="${MYVAULT_CLIENT_SECRET:-CHANGE_ME}" \
   --from-literal=OWUI_API_KEY="${OWUI_API_KEY:-}" \
   --dry-run=client -o yaml | kubectl apply -f -
 
